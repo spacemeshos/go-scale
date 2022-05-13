@@ -45,7 +45,7 @@ func (a *Signature) DecodeScale(d *Decoder) (int, error) {
 type ByteSlice []byte
 
 func (b *ByteSlice) EncodeScale(e *Encoder) (int, error) {
-	total, err := EncodeCompact32(e, uint32(len(*b)))
+	total, err := EncodeLen(e, uint32(len(*b)))
 	if err != nil {
 		return 0, err
 	}
@@ -57,7 +57,7 @@ func (b *ByteSlice) EncodeScale(e *Encoder) (int, error) {
 }
 
 func (b *ByteSlice) DecodeScale(d *Decoder) (int, error) {
-	lth, total, err := DecodeCompact32(d)
+	lth, total, err := DecodeLen(d)
 	if err != nil {
 		return 0, err
 	}

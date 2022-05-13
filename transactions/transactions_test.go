@@ -13,8 +13,11 @@ import (
 )
 
 func TestGenTransactions(t *testing.T) {
-	require.NoError(t, gen.Generate("types", "types/types_scale.go",
+	require.NoError(t, gen.Generate("types", "types/spawn_scale.go",
 		types.SelfSpawn{}, types.SelfSpawnArguments{}, types.SelfSpawnBody{}, types.SelfSpawnPayload{}))
+
+	require.NoError(t, gen.Generate("types", "types/spend_scale.go",
+		types.Spend{}, types.SpendBody{}, types.SpendMethodArguments{}, types.SpendNonceFields{}, types.SpendPayload{}))
 }
 
 func TestSelfSpawn(t *testing.T) {
@@ -72,6 +75,18 @@ func BenchmarkSelfSpawn(b *testing.B) {
 			if err != nil {
 				b.Fatal(err)
 			}
+		}
+	})
+
+	reuse := bytes.NewBuffer(make([]byte, 1024))
+	ereuse := scale.NewEncoder(reuse)
+	b.Run("EncodeReuse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, err := tx.EncodeScale(ereuse)
+			if err != nil {
+				b.Fatal(err)
+			}
+			reuse.Reset()
 		}
 	})
 

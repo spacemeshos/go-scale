@@ -94,6 +94,17 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 	return value, total, nil
 }
 
+func DecodeLen(d *Decoder) (uint32, int, error) {
+	v, n, err := DecodeCompact32(d)
+	if err != nil {
+		return v, n, err
+	}
+	if v > maxElements {
+		return v, n, fmt.Errorf("can't decode more than %v elements", maxElements)
+	}
+	return v, n, err
+}
+
 func DecodeCompact64(d *Decoder) (uint64, int, error) {
 	var value uint64
 	_, err := d.r.Read(d.scratch[:1])
@@ -154,7 +165,7 @@ func DecodeStruct[V any, H DecodableHelper[V]](d *Decoder) (V, int, error) {
 }
 
 func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error) {
-	lth, total, err := DecodeCompact32(d)
+	lth, total, err := DecodeLen(d)
 	if err != nil {
 		return nil, 0, err
 	}

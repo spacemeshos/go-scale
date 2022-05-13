@@ -2,8 +2,13 @@ package scale
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math/bits"
+)
+
+const (
+	maxElements = 1 << 20
 )
 
 const (
@@ -35,7 +40,7 @@ type Encoder struct {
 }
 
 func EncodeStructSlice[V any, H EncodeHelper[V]](e *Encoder, value []V) (int, error) {
-	total, err := EncodeCompact32(e, uint32(len(value)))
+	total, err := EncodeLen(e, uint32(len(value)))
 	if err != nil {
 		return 0, err
 	}
@@ -155,6 +160,13 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 		return encodeOneZero(e, v<<2|0b10)
 	}
 	return encodeOneOne(e, uint64(v))
+}
+
+func EncodeLen(e *Encoder, v uint32) (int, error) {
+	if v > maxElements {
+		return 0, fmt.Errorf("max elements in the collection is set to %v", maxElements)
+	}
+	return EncodeCompact32(e, v)
 }
 
 func EncodeOption[V Encodable](e *Encoder, value *V) (int, error) {
