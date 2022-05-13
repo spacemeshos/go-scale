@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/spacemeshos/go-scale/gen"
+	"github.com/spacemeshos/go-scale/scalegen/gen"
 )
 
 func main() {

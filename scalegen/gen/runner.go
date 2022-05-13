@@ -16,7 +16,7 @@ const program = `package main
 import (
 	"log"
 
-	"github.com/spacemeshos/go-scale/gen"
+	"github.com/spacemeshos/go-scale/scalegen/gen"
 
 	{{ range $pkg := .Imports }}"{{ $pkg }}"
     {{ end }}
