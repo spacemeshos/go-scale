@@ -71,7 +71,7 @@ func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Adress (0)
-	if field, n, err := scale.DecodeStruct[scale.Address](dec); err != nil {
+	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -117,7 +117,7 @@ func (t *SpendMethodArguments) EncodeScale(enc *scale.Encoder) (total int, err e
 
 func (t *SpendMethodArguments) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Recipient (0)
-	if field, n, err := scale.DecodeStruct[scale.Address](dec); err != nil {
+	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
 		return total, err
 	} else {
 		total += n

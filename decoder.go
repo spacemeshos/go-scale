@@ -185,10 +185,10 @@ func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error
 	return value, total, nil
 }
 
-func DecodeStructArray[V Decodable](d *Decoder, value *[]V) (int, error) {
+func DecodeStructArray[V any, H DecodableHelper[V]](d *Decoder, value *[]V) (int, error) {
 	total := 0
 	for i := range *value {
-		n, err := (*value)[i].DecodeScale(d)
+		n, err := H(&(*value)[i]).DecodeScale(d)
 		if err != nil {
 			return 0, err
 		}

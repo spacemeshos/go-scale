@@ -24,26 +24,44 @@ const (
         {{ end }}
 	)
 	`
+)
 
-	encodeMethodStart = `func (t *{{ .Name }}) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	`
+type temp struct {
+	encode string
+	decode string
+}
 
-	encodeTemplate = `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}); err != nil {
-		return total, err
-	} else {
-		total += n
+var (
+	start = temp{
+		encode: `func (t *{{ .Name }}) EncodeScale(enc *scale.Encoder) (total int, err error) {
+		`,
+		decode: `func (t *{{ .Name }}) DecodeScale(dec *scale.Decoder) (total int,  err error) {
+		`,
 	}
-	`
-
-	decodeMethodStart = `func (t *{{ .Name }}) DecodeScale(dec *scale.Decoder) (total int,  err error) {
-	`
-	decodeTemplate = `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.{{ .Name }} = field
+	generic = temp{
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}); err != nil {
+			return total, err
+		} else {
+			total += n
+		}
+		`,
+		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec); err != nil {
+			return total, err
+		} else {
+			total += n
+			t.{{ .Name }} = field
+		}
+		`,
 	}
-	`
+	structArray = temp{
+		encode: generic.encode,
+		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, &t.{{ .Name }}); err != nil {
+			return total, err
+		} else {
+			total += n
+		}
+		`,
+	}
 )
 
 func Generate(pkg string, filepath string, objs ...interface{}) error {
@@ -199,7 +217,7 @@ func getScaleType(t reflect.Type) (string, error) {
 
 func encodeMethod(w io.Writer, tc *typeContext) error {
 	typ := tc.Type
-	if err := executeTemplate(w, encodeMethodStart, tc); err != nil {
+	if err := executeTemplate(w, start.encode, tc); err != nil {
 		return err
 	}
 	for i := 0; i < typ.NumField(); i++ {
@@ -207,19 +225,27 @@ func encodeMethod(w io.Writer, tc *typeContext) error {
 		if private(field) {
 			continue
 		}
-
-		stype, err := getScaleType(field.Type)
-		if err != nil {
-			return err
+		stype := field.Tag.Get("scale-type")
+		if len(stype) == 0 {
+			var err error
+			stype, err = getScaleType(field.Type)
+			if err != nil {
+				return err
+			}
 		}
+		tmp := generic
+
 		tctx := &typeContext{
 			Name:      field.Name,
 			Type:      field.Type,
 			ScaleType: stype,
 		}
+		if tctx.ScaleType == "StructArray" {
+			tmp = structArray
+		}
 
 		fmt.Fprintf(w, "// field %v (%d)\n", field.Name, i)
-		if err := executeTemplate(w, encodeTemplate, tctx); err != nil {
+		if err := executeTemplate(w, tmp.encode, tctx); err != nil {
 			return err
 		}
 		fmt.Fprintln(w)
@@ -232,7 +258,7 @@ func encodeMethod(w io.Writer, tc *typeContext) error {
 
 func decodeMethod(w io.Writer, gc *genContext, tc *typeContext) error {
 	typ := tc.Type
-	if err := executeTemplate(w, decodeMethodStart, tc); err != nil {
+	if err := executeTemplate(w, start.decode, tc); err != nil {
 		return err
 	}
 	for i := 0; i < typ.NumField(); i++ {
@@ -241,10 +267,16 @@ func decodeMethod(w io.Writer, gc *genContext, tc *typeContext) error {
 			continue
 		}
 
-		stype, err := getScaleType(field.Type)
-		if err != nil {
-			return err
+		stype := field.Tag.Get("scale-type")
+		if len(stype) == 0 {
+			var err error
+			stype, err = getScaleType(field.Type)
+			if err != nil {
+				return err
+			}
 		}
+		tmp := generic
+
 		tctx := &typeContext{
 			Name:          field.Name,
 			Type:          field.Type,
@@ -252,12 +284,15 @@ func decodeMethod(w io.Writer, gc *genContext, tc *typeContext) error {
 			ScaleType:     stype,
 			ParentPackage: tc.ParentPackage,
 		}
+		if tctx.ScaleType == "StructArray" {
+			tmp = structArray
+		}
 		if strings.Contains(stype, "Struct") || strings.Contains(stype, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
 		log.Printf("type context %+v", tctx)
 		fmt.Fprintf(w, "// field %v (%d)\n", field.Name, i)
-		if err := executeTemplate(w, decodeTemplate, tctx); err != nil {
+		if err := executeTemplate(w, tmp.decode, tctx); err != nil {
 			return err
 		}
 		fmt.Fprintln(w)

@@ -1,36 +1,42 @@
 package scale
 
-type Address [20]byte
+type Type interface {
+	Encodable
+	Decodable
+}
 
-func (a *Address) EncodeScale(e *Encoder) (int, error) {
+type TypeHelper[T any] interface {
+	Type
+	*T
+}
+
+type Bytes20 [20]byte
+
+func (a *Bytes20) EncodeScale(e *Encoder) (int, error) {
 	return e.w.Write(a[:])
 }
 
-func (a *Address) DecodeScale(d *Decoder) (int, error) {
+func (a *Bytes20) DecodeScale(d *Decoder) (int, error) {
 	return d.r.Read(a[:])
 }
 
-type Hash20 [20]byte
+type Bytes32 [32]byte
 
-func (a *Hash20) EncodeScale(e *Encoder) (int, error) {
+func (a *Bytes32) EncodeScale(e *Encoder) (int, error) {
 	return e.w.Write(a[:])
 }
 
-func (a *Hash20) DecodeScale(d *Decoder) (int, error) {
+func (a *Bytes32) DecodeScale(d *Decoder) (int, error) {
 	return d.r.Read(a[:])
 }
 
-type Hash32 [32]byte
+type Hash20 = Bytes20
 
-func (a *Hash32) EncodeScale(e *Encoder) (int, error) {
-	return e.w.Write(a[:])
-}
+type Address = Bytes20
 
-func (a *Hash32) DecodeScale(d *Decoder) (int, error) {
-	return d.r.Read(a[:])
-}
+type PublicKey = Bytes32
 
-type PublicKey = Hash32
+type Hash32 = Bytes32
 
 type Signature [64]byte
 
@@ -72,3 +78,7 @@ func (b *ByteSlice) DecodeScale(d *Decoder) (int, error) {
 }
 
 type String = ByteSlice
+
+func (s String) String() string {
+	return string(s)
+}

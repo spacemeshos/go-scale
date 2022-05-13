@@ -57,7 +57,7 @@ func (t *SelfSpawnArguments) EncodeScale(enc *scale.Encoder) (total int, err err
 
 func (t *SelfSpawnArguments) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Key (0)
-	if field, n, err := scale.DecodeStruct[scale.Hash32](dec); err != nil {
+	if field, n, err := scale.DecodeStruct[scale.Bytes32](dec); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -94,7 +94,7 @@ func (t *SelfSpawnBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *SelfSpawnBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Address (0)
-	if field, n, err := scale.DecodeStruct[scale.Address](dec); err != nil {
+	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -154,7 +154,7 @@ func (t *SelfSpawnPayload) EncodeScale(enc *scale.Encoder) (total int, err error
 
 func (t *SelfSpawnPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Template (0)
-	if field, n, err := scale.DecodeStruct[scale.Address](dec); err != nil {
+	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
 		return total, err
 	} else {
 		total += n

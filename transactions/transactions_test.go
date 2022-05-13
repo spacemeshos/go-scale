@@ -18,6 +18,17 @@ func TestGenTransactions(t *testing.T) {
 
 	require.NoError(t, gen.Generate("types", "types/spend_scale.go",
 		types.Spend{}, types.SpendBody{}, types.SpendMethodArguments{}, types.SpendNonceFields{}, types.SpendPayload{}))
+
+	require.NoError(t, gen.Generate("types", "types/multi_scale.go",
+		types.SpawnMulti{},
+		types.SpawnMultiBody{},
+		types.SpawnMultiPayload{},
+		types.MultiSig{},
+		types.SpendMulti{},
+		types.SpendMultiBody{},
+		types.SpendMultiPayload{},
+		types.CommonBody{},
+	))
 }
 
 func TestSelfSpawn(t *testing.T) {
@@ -136,4 +147,13 @@ func BenchmarkSelfSpawn(b *testing.B) {
 			}
 		}
 	})
+}
+
+func TestGeneric(t *testing.T) {
+	// tx := types.Tx{
+	// 	Type: 1,
+	// 	Body: types.Body[types.SelfSpawnPayload, *types.SelfSpawnPayload]{
+	// 		Payload: types.SelfSpawnPayload{},
+	// 	},
+	// }
 }
