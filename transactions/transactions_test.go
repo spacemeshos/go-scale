@@ -131,6 +131,47 @@ func BenchmarkSelfSpawn(b *testing.B) {
 	})
 }
 
+func TestMultiSpend(t *testing.T) {
+	tx := types.SpendMulti{
+		Type: 1,
+		Body: types.SpendMultiBody{
+			Address:  scale.Address{1, 1, 1},
+			Selector: 15,
+			Payload: types.SpendMultiPayload{
+				Arguments: types.SpendMethodArguments{
+					Recipient: scale.Address{1, 1},
+					Amount:    31231251,
+				},
+				GasPrice: 100,
+				Nonce: types.SpendNonceFields{
+					Counter:  1312,
+					Bitfield: 321,
+				},
+				Signatures: types.MultiSig{
+					SigConf: 1,
+					Signatures: []scale.Signature{
+						{1, 3},
+						{3, 3},
+					},
+				},
+			},
+		},
+	}
+
+	buf := bytes.NewBuffer(nil)
+	enc := scale.NewEncoder(buf)
+	en, err := tx.EncodeScale(enc)
+	require.NoError(t, err)
+
+	dec := scale.NewDecoder(buf)
+	var decoded types.SpendMulti
+	decoded.Body.Payload.Signatures.Signatures = make([]scale.Signature, 2)
+	dn, err := decoded.DecodeScale(dec)
+	require.NoError(t, err)
+	require.Equal(t, tx, decoded)
+	require.Equal(t, en, dn)
+}
+
 func TestGeneric(t *testing.T) {
 	// tx := types.Tx{
 	// 	Type: 1,
