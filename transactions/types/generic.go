@@ -10,6 +10,7 @@ type Tx[T any, H scale.TypeHelper[T]] struct {
 	}
 }
 
+//go:generate scalegen -pkg types -file generic_scale.go -types CommonBody -imports github.com/spacemeshos/go-scale/transactions/types
 type CommonBody struct {
 	Address  scale.Address
 	Selector uint8

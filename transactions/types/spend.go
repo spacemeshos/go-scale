@@ -2,6 +2,8 @@ package types
 
 import "github.com/spacemeshos/go-scale"
 
+//go:generate scalegen -pkg types -file spend_scale.go -types Spend,SpendBody,SpendPayload,SpendMethodArguments,SpendNonceFields -imports github.com/spacemeshos/go-scale/transactions/types
+
 type Spend struct {
 	Type uint8
 	Body SpendBody

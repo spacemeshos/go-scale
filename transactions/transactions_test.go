@@ -5,31 +5,11 @@ import (
 	"testing"
 
 	"github.com/spacemeshos/go-scale"
-	"github.com/spacemeshos/go-scale/gen"
 	"github.com/spacemeshos/go-scale/transactions/types"
 
 	xdr "github.com/nullstyle/go-xdr/xdr3"
 	"github.com/stretchr/testify/require"
 )
-
-func TestGenTransactions(t *testing.T) {
-	require.NoError(t, gen.Generate("types", "types/spawn_scale.go",
-		types.SelfSpawn{}, types.SelfSpawnArguments{}, types.SelfSpawnBody{}, types.SelfSpawnPayload{}))
-
-	require.NoError(t, gen.Generate("types", "types/spend_scale.go",
-		types.Spend{}, types.SpendBody{}, types.SpendMethodArguments{}, types.SpendNonceFields{}, types.SpendPayload{}))
-
-	require.NoError(t, gen.Generate("types", "types/multi_scale.go",
-		types.SpawnMulti{},
-		types.SpawnMultiBody{},
-		types.SpawnMultiPayload{},
-		types.MultiSig{},
-		types.SpendMulti{},
-		types.SpendMultiBody{},
-		types.SpendMultiPayload{},
-		types.CommonBody{},
-	))
-}
 
 func TestSelfSpawn(t *testing.T) {
 	tx := types.SelfSpawn{

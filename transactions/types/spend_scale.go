@@ -97,6 +97,74 @@ func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	return total, nil
 }
 
+func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	// field Arguments (0)
+	if n, err := scale.EncodeStruct(enc, t.Arguments); err != nil {
+		return total, err
+	} else {
+		total += n
+	}
+
+	// field Nonce (1)
+	if n, err := scale.EncodeStruct(enc, t.Nonce); err != nil {
+		return total, err
+	} else {
+		total += n
+	}
+
+	// field GasPrice (2)
+	if n, err := scale.EncodeCompact32(enc, t.GasPrice); err != nil {
+		return total, err
+	} else {
+		total += n
+	}
+
+	// field Signature (3)
+	if n, err := scale.EncodeStruct(enc, t.Signature); err != nil {
+		return total, err
+	} else {
+		total += n
+	}
+
+	return total, nil
+}
+
+func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	// field Arguments (0)
+	if field, n, err := scale.DecodeStruct[SpendMethodArguments](dec); err != nil {
+		return total, err
+	} else {
+		total += n
+		t.Arguments = field
+	}
+
+	// field Nonce (1)
+	if field, n, err := scale.DecodeStruct[SpendNonceFields](dec); err != nil {
+		return total, err
+	} else {
+		total += n
+		t.Nonce = field
+	}
+
+	// field GasPrice (2)
+	if field, n, err := scale.DecodeCompact32(dec); err != nil {
+		return total, err
+	} else {
+		total += n
+		t.GasPrice = field
+	}
+
+	// field Signature (3)
+	if field, n, err := scale.DecodeStruct[scale.Signature](dec); err != nil {
+		return total, err
+	} else {
+		total += n
+		t.Signature = field
+	}
+
+	return total, nil
+}
+
 func (t *SpendMethodArguments) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	// field Recipient (0)
 	if n, err := scale.EncodeStruct(enc, t.Recipient); err != nil {
@@ -168,74 +236,6 @@ func (t *SpendNonceFields) DecodeScale(dec *scale.Decoder) (total int, err error
 	} else {
 		total += n
 		t.Bitfield = field
-	}
-
-	return total, nil
-}
-
-func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Arguments (0)
-	if n, err := scale.EncodeStruct(enc, t.Arguments); err != nil {
-		return total, err
-	} else {
-		total += n
-	}
-
-	// field Nonce (1)
-	if n, err := scale.EncodeStruct(enc, t.Nonce); err != nil {
-		return total, err
-	} else {
-		total += n
-	}
-
-	// field GasPrice (2)
-	if n, err := scale.EncodeCompact32(enc, t.GasPrice); err != nil {
-		return total, err
-	} else {
-		total += n
-	}
-
-	// field Signature (3)
-	if n, err := scale.EncodeStruct(enc, t.Signature); err != nil {
-		return total, err
-	} else {
-		total += n
-	}
-
-	return total, nil
-}
-
-func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Arguments (0)
-	if field, n, err := scale.DecodeStruct[SpendMethodArguments](dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.Arguments = field
-	}
-
-	// field Nonce (1)
-	if field, n, err := scale.DecodeStruct[SpendNonceFields](dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.Nonce = field
-	}
-
-	// field GasPrice (2)
-	if field, n, err := scale.DecodeCompact32(dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.GasPrice = field
-	}
-
-	// field Signature (3)
-	if field, n, err := scale.DecodeStruct[scale.Signature](dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.Signature = field
 	}
 
 	return total, nil

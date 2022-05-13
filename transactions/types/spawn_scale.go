@@ -44,29 +44,6 @@ func (t *SelfSpawn) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	return total, nil
 }
 
-func (t *SelfSpawnArguments) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Key (0)
-	if n, err := scale.EncodeStruct(enc, t.Key); err != nil {
-		return total, err
-	} else {
-		total += n
-	}
-
-	return total, nil
-}
-
-func (t *SelfSpawnArguments) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Key (0)
-	if field, n, err := scale.DecodeStruct[scale.Bytes32](dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.Key = field
-	}
-
-	return total, nil
-}
-
 func (t *SelfSpawnBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	// field Address (0)
 	if n, err := scale.EncodeStruct(enc, t.Address); err != nil {
@@ -183,6 +160,29 @@ func (t *SelfSpawnPayload) DecodeScale(dec *scale.Decoder) (total int, err error
 	} else {
 		total += n
 		t.Signature = field
+	}
+
+	return total, nil
+}
+
+func (t *SelfSpawnArguments) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	// field Key (0)
+	if n, err := scale.EncodeStruct(enc, t.Key); err != nil {
+		return total, err
+	} else {
+		total += n
+	}
+
+	return total, nil
+}
+
+func (t *SelfSpawnArguments) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	// field Key (0)
+	if field, n, err := scale.DecodeStruct[scale.Bytes32](dec); err != nil {
+		return total, err
+	} else {
+		total += n
+		t.Key = field
 	}
 
 	return total, nil

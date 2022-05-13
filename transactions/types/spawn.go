@@ -2,6 +2,8 @@ package types
 
 import "github.com/spacemeshos/go-scale"
 
+//go:generate scalegen -pkg types -file spawn_scale.go -types SelfSpawn,SelfSpawnBody,SelfSpawnPayload,SelfSpawnArguments -imports github.com/spacemeshos/go-scale/transactions/types
+
 type SelfSpawn struct {
 	Type uint8
 	Body SelfSpawnBody

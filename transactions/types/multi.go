@@ -2,6 +2,8 @@ package types
 
 import "github.com/spacemeshos/go-scale"
 
+//go:generate scalegen -pkg types -file multi_scale.go -types SpawnMulti,SpawnMultiBody,SpawnMultiPayload,MultiSig,SpendMulti,SpendMultiBody,SpendMultiPayload -imports github.com/spacemeshos/go-scale/transactions/types
+
 type SpawnMulti struct {
 	Type uint8
 	Body SpawnMultiBody
