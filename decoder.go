@@ -110,35 +110,42 @@ func DecodeLen(d *Decoder) (uint32, int, error) {
 }
 
 func DecodeCompact64(d *Decoder) (uint64, int, error) {
-	var value uint64
-	_, err := d.r.Read(d.scratch[:1])
+	var (
+		value uint64
+		total int
+	)
+	n, err := d.r.Read(d.scratch[:1])
 	if err != nil {
 		return value, 0, err
 	}
+	total += n
 	switch d.scratch[0] % 4 {
 	case 0:
 		value = uint64(d.scratch[0]) >> 2
 	case 1:
-		_, err := d.r.Read(d.scratch[1:2])
+		n, err := d.r.Read(d.scratch[1:2])
 		if err != nil {
 			return 0, 0, err
 		}
+		total += n
 		value = (uint64(d.scratch[0]) | uint64(d.scratch[1])<<8) >> 2
 	case 2:
-		_, err := d.r.Read(d.scratch[1:4])
+		n, err := d.r.Read(d.scratch[1:4])
 		if err != nil {
 			return 0, 0, err
 		}
+		total += n
 		value = (uint64(d.scratch[0]) |
 			uint64(d.scratch[1])<<8 |
 			uint64(d.scratch[2])<<16 |
 			uint64(d.scratch[3])<<24) >> 2
 	case 3:
 		needed := byte(d.scratch[0]) >> 2
-		_, err := d.r.Read(d.scratch[:needed])
+		n, err := d.r.Read(d.scratch[:needed])
 		if err != nil {
 			return 0, 0, err
 		}
+		total += n
 		if needed > 8 {
 			return value, 0, fmt.Errorf("invalid compact64 encoding %x needs %d bytes", d.scratch[:needed], needed)
 		}
@@ -146,7 +153,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 			value |= uint64(d.scratch[i]) << (8 * i)
 		}
 	}
-	return 0, 0, nil
+	return value, total, nil
 }
 
 func DecodeBool(d *Decoder, value *bool) (int, error) {
