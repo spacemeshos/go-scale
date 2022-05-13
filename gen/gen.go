@@ -62,6 +62,20 @@ var (
 		}
 		`,
 	}
+	object = temp{
+		encode: `if n, err := t.{{ .Name }}.EncodeScale(enc); err != nil {
+			return total, err
+		} else {
+			total += n
+		}
+		`,
+		decode: `if n, err := t.{{ .Name }}.DecodeScale(dec); err != nil {
+			return total, err
+		} else {
+			total += n
+		}
+		`,
+	}
 )
 
 func Generate(pkg string, filepath string, objs ...interface{}) error {
@@ -192,7 +206,7 @@ func getScaleType(t reflect.Type) (string, error) {
 	case reflect.Uint64:
 		return "Compact64", nil
 	case reflect.Struct:
-		return "Struct", nil
+		return "Object", nil
 	case reflect.Ptr:
 		switch t.Elem().Kind() {
 		case reflect.Array:
@@ -208,7 +222,7 @@ func getScaleType(t reflect.Type) (string, error) {
 		return "StructSlice", nil
 	case reflect.Array:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "Struct", nil
+			return "Object", nil
 		}
 		return "StructArray", nil
 	}
@@ -242,6 +256,9 @@ func encodeMethod(w io.Writer, tc *typeContext) error {
 		}
 		if tctx.ScaleType == "StructArray" {
 			tmp = structArray
+		}
+		if tctx.ScaleType == "Object" {
+			tmp = object
 		}
 
 		fmt.Fprintf(w, "// field %v (%d)\n", field.Name, i)
@@ -286,6 +303,9 @@ func decodeMethod(w io.Writer, gc *genContext, tc *typeContext) error {
 		}
 		if tctx.ScaleType == "StructArray" {
 			tmp = structArray
+		}
+		if tctx.ScaleType == "Object" {
+			tmp = object
 		}
 		if strings.Contains(stype, "Struct") || strings.Contains(stype, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)

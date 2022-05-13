@@ -15,7 +15,7 @@ func (t *Spend) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	}
 
 	// field Body (1)
-	if n, err := scale.EncodeStruct(enc, t.Body); err != nil {
+	if n, err := t.Body.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -34,11 +34,10 @@ func (t *Spend) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	}
 
 	// field Body (1)
-	if field, n, err := scale.DecodeStruct[SpendBody](dec); err != nil {
+	if n, err := t.Body.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Body = field
 	}
 
 	return total, nil
@@ -46,7 +45,7 @@ func (t *Spend) DecodeScale(dec *scale.Decoder) (total int, err error) {
 
 func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	// field Adress (0)
-	if n, err := scale.EncodeStruct(enc, t.Adress); err != nil {
+	if n, err := t.Adress.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -60,7 +59,7 @@ func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	}
 
 	// field Payload (2)
-	if n, err := scale.EncodeStruct(enc, t.Payload); err != nil {
+	if n, err := t.Payload.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -71,11 +70,10 @@ func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Adress (0)
-	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
+	if n, err := t.Adress.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Adress = field
 	}
 
 	// field Selector (1)
@@ -87,11 +85,10 @@ func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	}
 
 	// field Payload (2)
-	if field, n, err := scale.DecodeStruct[SpendPayload](dec); err != nil {
+	if n, err := t.Payload.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Payload = field
 	}
 
 	return total, nil
@@ -99,14 +96,14 @@ func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 
 func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	// field Arguments (0)
-	if n, err := scale.EncodeStruct(enc, t.Arguments); err != nil {
+	if n, err := t.Arguments.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
 
 	// field Nonce (1)
-	if n, err := scale.EncodeStruct(enc, t.Nonce); err != nil {
+	if n, err := t.Nonce.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -120,7 +117,7 @@ func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	}
 
 	// field Signature (3)
-	if n, err := scale.EncodeStruct(enc, t.Signature); err != nil {
+	if n, err := t.Signature.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -131,19 +128,17 @@ func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Arguments (0)
-	if field, n, err := scale.DecodeStruct[SpendMethodArguments](dec); err != nil {
+	if n, err := t.Arguments.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Arguments = field
 	}
 
 	// field Nonce (1)
-	if field, n, err := scale.DecodeStruct[SpendNonceFields](dec); err != nil {
+	if n, err := t.Nonce.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Nonce = field
 	}
 
 	// field GasPrice (2)
@@ -155,11 +150,10 @@ func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	}
 
 	// field Signature (3)
-	if field, n, err := scale.DecodeStruct[scale.Signature](dec); err != nil {
+	if n, err := t.Signature.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Signature = field
 	}
 
 	return total, nil
@@ -167,7 +161,7 @@ func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 
 func (t *SpendMethodArguments) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	// field Recipient (0)
-	if n, err := scale.EncodeStruct(enc, t.Recipient); err != nil {
+	if n, err := t.Recipient.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -185,11 +179,10 @@ func (t *SpendMethodArguments) EncodeScale(enc *scale.Encoder) (total int, err e
 
 func (t *SpendMethodArguments) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Recipient (0)
-	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
+	if n, err := t.Recipient.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Recipient = field
 	}
 
 	// field Amount (1)

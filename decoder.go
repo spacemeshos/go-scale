@@ -18,6 +18,10 @@ func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{r: r}
 }
 
+func (d *Decoder) Reset(r io.Reader) {
+	d.r = r
+}
+
 type Decoder struct {
 	r       io.Reader
 	scratch [9]byte

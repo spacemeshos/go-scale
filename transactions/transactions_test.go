@@ -88,15 +88,17 @@ func BenchmarkSelfSpawn(b *testing.B) {
 		b.Fatal(err)
 	}
 	byts := buf.Bytes()
+	rd := bytes.NewReader(byts)
+	dec := scale.NewDecoder(rd)
 
 	b.Run("Decode", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			dec := scale.NewDecoder(bytes.NewBuffer(byts))
 			var decoded types.SelfSpawn
 			_, err = decoded.DecodeScale(dec)
 			if err != nil {
 				b.Fatal(err)
 			}
+			rd.Reset(byts)
 		}
 	})
 

@@ -8,7 +8,7 @@ import (
 
 func (t *CommonBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	// field Address (0)
-	if n, err := scale.EncodeStruct(enc, t.Address); err != nil {
+	if n, err := t.Address.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -26,11 +26,10 @@ func (t *CommonBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *CommonBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	// field Address (0)
-	if field, n, err := scale.DecodeStruct[scale.Bytes20](dec); err != nil {
+	if n, err := t.Address.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
-		t.Address = field
 	}
 
 	// field Selector (1)
