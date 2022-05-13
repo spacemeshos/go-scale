@@ -209,6 +209,13 @@ func (t *SpendMulti) EncodeScale(enc *scale.Encoder) (total int, err error) {
 		total += n
 	}
 
+	// field Body (1)
+	if n, err := scale.EncodeStruct(enc, t.Body); err != nil {
+		return total, err
+	} else {
+		total += n
+	}
+
 	return total, nil
 }
 
@@ -219,6 +226,14 @@ func (t *SpendMulti) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	} else {
 		total += n
 		t.Type = field
+	}
+
+	// field Body (1)
+	if field, n, err := scale.DecodeStruct[SpendMultiBody](dec); err != nil {
+		return total, err
+	} else {
+		total += n
+		t.Body = field
 	}
 
 	return total, nil

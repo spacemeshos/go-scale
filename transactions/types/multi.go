@@ -29,6 +29,7 @@ type MultiSig struct {
 
 type SpendMulti struct {
 	Type uint8
+	Body SpendMultiBody
 }
 
 type SpendMultiBody struct {
