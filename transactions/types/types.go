@@ -1,4 +1,4 @@
-package transactions
+package types
 
 import "github.com/spacemeshos/go-scale"
 
@@ -17,7 +17,7 @@ type SelfSpawnPayload struct {
 	Template  scale.Address
 	Arguments SelfSpawnArguments
 	GasPrice  uint32
-	Signature [64]byte // it can't be a part of payload
+	Signature scale.Signature
 }
 
 type SelfSpawnArguments struct {

@@ -32,6 +32,16 @@ func (a *Hash32) DecodeScale(d *Decoder) (int, error) {
 
 type PublicKey = Hash32
 
+type Signature [64]byte
+
+func (a *Signature) EncodeScale(e *Encoder) (int, error) {
+	return e.w.Write(a[:])
+}
+
+func (a *Signature) DecodeScale(d *Decoder) (int, error) {
+	return d.r.Read(a[:])
+}
+
 type ByteSlice []byte
 
 func (b *ByteSlice) EncodeScale(e *Encoder) (int, error) {

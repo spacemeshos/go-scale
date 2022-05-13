@@ -1,6 +1,7 @@
 package scale
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -22,26 +23,56 @@ type Decoder struct {
 	scratch [9]byte
 }
 
-func DecodeCompact32(d *Decoder) (uint32, int, error) {
-	var value uint32
-	_, err := d.r.Read(d.scratch[:1])
+func DecodeCompact8(d *Decoder) (uint8, int, error) {
+	var (
+		value uint8
+		total int
+	)
+	n, err := d.r.Read(d.scratch[:1])
 	if err != nil {
 		return value, 0, err
 	}
+	total += n
+	switch d.scratch[0] % 4 {
+	case 0:
+		value = uint8(d.scratch[0]) >> 2
+	case 1:
+		n, err := d.r.Read(d.scratch[1:2])
+		if err != nil {
+			return value, 0, err
+		}
+		total += n
+		value = uint8((uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2)
+	}
+	return value, total, nil
+}
+
+func DecodeCompact32(d *Decoder) (uint32, int, error) {
+	var (
+		value uint32
+		total int
+	)
+	n, err := d.r.Read(d.scratch[:1])
+	if err != nil {
+		return value, 0, err
+	}
+	total += n
 	switch d.scratch[0] % 4 {
 	case 0:
 		value = uint32(d.scratch[0]) >> 2
 	case 1:
-		_, err := d.r.Read(d.scratch[1:2])
+		n, err := d.r.Read(d.scratch[1:2])
 		if err != nil {
 			return value, 0, err
 		}
+		total += n
 		value = (uint32(d.scratch[0]) | uint32(d.scratch[1])<<8) >> 2
 	case 2:
-		_, err := d.r.Read(d.scratch[1:4])
+		n, err := d.r.Read(d.scratch[1:4])
 		if err != nil {
 			return value, 0, err
 		}
+		total += n
 		value = (uint32(d.scratch[0]) |
 			uint32(d.scratch[1])<<8 |
 			uint32(d.scratch[2])<<16 |
@@ -52,11 +83,15 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 		if err != nil {
 			return value, 0, err
 		}
+		total += int(needed)
+		if needed > 4 {
+			return value, 0, fmt.Errorf("invalid compact32 encoding %x needs %d bytes", d.scratch[:needed], needed)
+		}
 		for i := 0; i < int(needed); i++ {
 			value |= uint32(d.scratch[i]) << (8 * i)
 		}
 	}
-	return value, 0, nil
+	return value, total, nil
 }
 
 func DecodeCompact64(d *Decoder) (uint64, int, error) {
@@ -88,6 +123,9 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 		_, err := d.r.Read(d.scratch[:needed])
 		if err != nil {
 			return 0, 0, err
+		}
+		if needed > 8 {
+			return value, 0, fmt.Errorf("invalid compact64 encoding %x needs %d bytes", d.scratch[:needed], needed)
 		}
 		for i := 0; i < int(needed); i++ {
 			value |= uint64(d.scratch[i]) << (8 * i)
