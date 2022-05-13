@@ -30,6 +30,8 @@ func (a *Hash32) DecodeScale(d *Decoder) (int, error) {
 	return d.r.Read(a[:])
 }
 
+type PublicKey = Hash32
+
 type ByteSlice []byte
 
 func (b *ByteSlice) EncodeScale(e *Encoder) (int, error) {
@@ -45,8 +47,7 @@ func (b *ByteSlice) EncodeScale(e *Encoder) (int, error) {
 }
 
 func (b *ByteSlice) DecodeScale(d *Decoder) (int, error) {
-	var lth uint32
-	total, err := DecodeCompact32(d, &lth)
+	lth, total, err := DecodeCompact32(d)
 	if err != nil {
 		return 0, err
 	}

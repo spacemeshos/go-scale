@@ -1,9 +1,16 @@
 package scale
 
-import "io"
+import (
+	"io"
+)
 
 type Decodable interface {
 	DecodeScale(*Decoder) (int, error)
+}
+
+type DecodableHelper[B any] interface {
+	Decodable
+	*B
 }
 
 func NewDecoder(r io.Reader) *Decoder {
@@ -15,26 +22,27 @@ type Decoder struct {
 	scratch [9]byte
 }
 
-func DecodeCompact32(d *Decoder, value *uint32) (int, error) {
+func DecodeCompact32(d *Decoder) (uint32, int, error) {
+	var value uint32
 	_, err := d.r.Read(d.scratch[:1])
 	if err != nil {
-		return 0, err
+		return value, 0, err
 	}
 	switch d.scratch[0] % 4 {
 	case 0:
-		*value = uint32(d.scratch[0]) >> 2
+		value = uint32(d.scratch[0]) >> 2
 	case 1:
 		_, err := d.r.Read(d.scratch[1:2])
 		if err != nil {
-			return 0, err
+			return value, 0, err
 		}
-		*value = (uint32(d.scratch[0]) | uint32(d.scratch[1])<<8) >> 2
+		value = (uint32(d.scratch[0]) | uint32(d.scratch[1])<<8) >> 2
 	case 2:
 		_, err := d.r.Read(d.scratch[1:4])
 		if err != nil {
-			return 0, err
+			return value, 0, err
 		}
-		*value = (uint32(d.scratch[0]) |
+		value = (uint32(d.scratch[0]) |
 			uint32(d.scratch[1])<<8 |
 			uint32(d.scratch[2])<<16 |
 			uint32(d.scratch[3])<<24) >> 2
@@ -42,35 +50,36 @@ func DecodeCompact32(d *Decoder, value *uint32) (int, error) {
 		needed := byte(d.scratch[0]) >> 2
 		_, err := d.r.Read(d.scratch[:needed])
 		if err != nil {
-			return 0, err
+			return value, 0, err
 		}
 		for i := 0; i < int(needed); i++ {
-			*value |= uint32(d.scratch[i]) << (8 * i)
+			value |= uint32(d.scratch[i]) << (8 * i)
 		}
 	}
-	return 0, nil
+	return value, 0, nil
 }
 
-func DecodeCompact64(d *Decoder, value *uint64) (int, error) {
+func DecodeCompact64(d *Decoder) (uint64, int, error) {
+	var value uint64
 	_, err := d.r.Read(d.scratch[:1])
 	if err != nil {
-		return 0, err
+		return value, 0, err
 	}
 	switch d.scratch[0] % 4 {
 	case 0:
-		*value = uint64(d.scratch[0]) >> 2
+		value = uint64(d.scratch[0]) >> 2
 	case 1:
 		_, err := d.r.Read(d.scratch[1:2])
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
-		*value = (uint64(d.scratch[0]) | uint64(d.scratch[1])<<8) >> 2
+		value = (uint64(d.scratch[0]) | uint64(d.scratch[1])<<8) >> 2
 	case 2:
 		_, err := d.r.Read(d.scratch[1:4])
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
-		*value = (uint64(d.scratch[0]) |
+		value = (uint64(d.scratch[0]) |
 			uint64(d.scratch[1])<<8 |
 			uint64(d.scratch[2])<<16 |
 			uint64(d.scratch[3])<<24) >> 2
@@ -78,13 +87,13 @@ func DecodeCompact64(d *Decoder, value *uint64) (int, error) {
 		needed := byte(d.scratch[0]) >> 2
 		_, err := d.r.Read(d.scratch[:needed])
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 		for i := 0; i < int(needed); i++ {
-			*value |= uint64(d.scratch[i]) << (8 * i)
+			value |= uint64(d.scratch[i]) << (8 * i)
 		}
 	}
-	return 0, nil
+	return 0, 0, nil
 }
 
 func DecodeBool(d *Decoder, value *bool) (int, error) {
@@ -100,26 +109,34 @@ func DecodeBool(d *Decoder, value *bool) (int, error) {
 	return n, nil
 }
 
-func DecodeStructSlice[V *[]Decodable](d *Decoder, value V) (int, error) {
-	var lth uint32
-	total, err := DecodeCompact32(d, &lth)
-	if err != nil {
-		return 0, err
-	}
-	if uint32(len(*value)) < lth {
-		*value = make([]Decodable, lth)
-	}
-	for i := range *value {
-		n, err := (*value)[i].DecodeScale(d)
-		if err != nil {
-			return 0, err
-		}
-		total += n
-	}
-	return total, nil
+func DecodeStruct[V any, H DecodableHelper[V]](d *Decoder) (V, int, error) {
+	var empty V
+	n, err := H(&empty).DecodeScale(d)
+	return empty, n, err
 }
 
-func DecodeStructArray[V *[]Decodable](d *Decoder, value V) (int, error) {
+func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error) {
+	lth, total, err := DecodeCompact32(d)
+	if err != nil {
+		return nil, 0, err
+	}
+	if lth == 0 {
+		return nil, 0, err
+	}
+	value := make([]V, 0, lth)
+
+	for i := uint32(0); i < lth; i++ {
+		val, n, err := DecodeStruct[V, H](d)
+		if err != nil {
+			return nil, 0, err
+		}
+		value = append(value, val)
+		total += n
+	}
+	return value, total, nil
+}
+
+func DecodeStructArray[V Decodable](d *Decoder, value *[]V) (int, error) {
 	total := 0
 	for i := range *value {
 		n, err := (*value)[i].DecodeScale(d)
@@ -131,17 +148,16 @@ func DecodeStructArray[V *[]Decodable](d *Decoder, value V) (int, error) {
 	return total, nil
 }
 
-func DecodeOption[V *Decodable](d *Decoder, value V) (int, error) {
+func DecodeOption[V any, H DecodableHelper[V]](d *Decoder) (*V, int, error) {
 	var exists bool
 	total, err := DecodeBool(d, &exists)
 	if !exists || err != nil {
-		return total, err
+		return nil, total, err
 	}
-	var empty Decodable
-	n, err := empty.DecodeScale(d)
+	var empty V
+	n, err := H(&empty).DecodeScale(d)
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	*value = empty
-	return total + n, nil
+	return &empty, total + n, nil
 }

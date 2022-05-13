@@ -29,7 +29,7 @@ type Encoder struct {
 	scratch [9]byte
 }
 
-func EncodeStructSlice[V []Encodable](e *Encoder, value V) (int, error) {
+func EncodeStructSlice[V Encodable](e *Encoder, value []V) (int, error) {
 	total, err := EncodeCompact32(e, uint32(len(value)))
 	if err != nil {
 		return 0, err
@@ -44,7 +44,7 @@ func EncodeStructSlice[V []Encodable](e *Encoder, value V) (int, error) {
 	return total, nil
 }
 
-func EncodeStructArray[V []Encodable](e *Encoder, value V) (int, error) {
+func EncodeStructArray[V Encodable](e *Encoder, value []V) (int, error) {
 	total := 0
 	for i := range value {
 		n, err := value[i].EncodeScale(e)
@@ -152,7 +152,7 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 	return encodeOneOne(e, uint64(v))
 }
 
-func EncodeOption[V *Encodable](e *Encoder, value V) (int, error) {
+func EncodeOption[V Encodable](e *Encoder, value *V) (int, error) {
 	if value == nil {
 		return EncodeBool(e, false)
 	}

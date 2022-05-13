@@ -15,9 +15,8 @@ func TestCompact32(t *testing.T) {
 	const expected = 321
 	_, err := EncodeCompact32(enc, expected)
 	require.NoError(t, err)
-	var rst uint32
 	dec := NewDecoder(buf)
-	_, err = DecodeCompact32(dec, &rst)
+	rst, _, err := DecodeCompact32(dec)
 	require.NoError(t, err)
 	require.EqualValues(t, expected, rst)
 }
@@ -30,9 +29,7 @@ func TestCompactBigInt(t *testing.T) {
 	require.NoError(t, err)
 
 	dec := NewDecoder(buf)
-	var value uint64
-	_, err = DecodeCompact64(dec, &value)
+	rst, _, err := DecodeCompact64(dec)
 	require.NoError(t, err)
-
-	require.EqualValues(t, encoded, value)
+	require.EqualValues(t, encoded, rst)
 }
