@@ -9,6 +9,8 @@ import (
 
 	xdr "github.com/nullstyle/go-xdr/xdr3"
 	"github.com/stretchr/testify/require"
+
+	fuzz "github.com/AdaLogics/go-fuzz-headers"
 )
 
 func TestSelfSpawn(t *testing.T) {
@@ -172,11 +174,33 @@ func TestMultiSpend(t *testing.T) {
 	require.Equal(t, en, dn)
 }
 
-func TestGeneric(t *testing.T) {
-	// tx := types.Tx{
-	// 	Type: 1,
-	// 	Body: types.Body[types.SelfSpawnPayload, *types.SelfSpawnPayload]{
-	// 		Payload: types.SelfSpawnPayload{},
-	// 	},
-	// }
+func fuzzType[T any, H scale.TypeHelper[T]](f *testing.F) {
+	f.Fuzz(func(t *testing.T, data []byte) {
+		consumer := fuzz.NewConsumer(data)
+		var tx T
+		err := consumer.GenerateStruct(&tx)
+		if err != nil {
+			return
+		}
+
+		buf := bytes.NewBuffer(nil)
+		enc := scale.NewEncoder(buf)
+		_, err = H(&tx).EncodeScale(enc)
+		require.NoError(t, err)
+
+		dec := scale.NewDecoder(buf)
+		var decoded T
+		_, err = H(&decoded).DecodeScale(dec)
+		require.NoError(t, err)
+
+		require.Equal(t, tx, decoded)
+	})
+}
+
+func FuzzSelfSpawn(f *testing.F) {
+	fuzzType[types.SelfSpawn](f)
+}
+
+func FuzzSpend(f *testing.F) {
+	fuzzType[types.Spend](f)
 }
