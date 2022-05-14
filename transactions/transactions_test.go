@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"testing"
 
+	fuzz "github.com/google/gofuzz"
 	"github.com/spacemeshos/go-scale"
 	"github.com/spacemeshos/go-scale/transactions/types"
 
 	xdr "github.com/nullstyle/go-xdr/xdr3"
 	"github.com/stretchr/testify/require"
-
-	fuzz "github.com/AdaLogics/go-fuzz-headers"
 )
 
 func TestSelfSpawn(t *testing.T) {
@@ -176,16 +175,13 @@ func TestMultiSpend(t *testing.T) {
 
 func fuzzType[T any, H scale.TypeHelper[T]](f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
-		consumer := fuzz.NewConsumer(data)
+		fuzzer := fuzz.NewFromGoFuzz(data)
 		var tx T
-		err := consumer.GenerateStruct(&tx)
-		if err != nil {
-			return
-		}
+		fuzzer.Fuzz(&tx)
 
 		buf := bytes.NewBuffer(nil)
 		enc := scale.NewEncoder(buf)
-		_, err = H(&tx).EncodeScale(enc)
+		_, err := H(&tx).EncodeScale(enc)
 		require.NoError(t, err)
 
 		dec := scale.NewDecoder(buf)
