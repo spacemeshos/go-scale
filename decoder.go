@@ -156,17 +156,15 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 	return value, total, nil
 }
 
-func DecodeBool(d *Decoder, value *bool) (int, error) {
+func DecodeBool(d *Decoder) (bool, int, error) {
 	n, err := d.r.Read(d.scratch[:1])
 	if err != nil {
-		return 0, err
+		return false, 0, err
 	}
 	if d.scratch[0] == 1 {
-		*value = true
-	} else {
-		*value = false
+		return true, n, nil
 	}
-	return n, nil
+	return false, n, nil
 }
 
 func DecodeStruct[V any, H DecodableHelper[V]](d *Decoder) (V, int, error) {
@@ -196,10 +194,10 @@ func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error
 	return value, total, nil
 }
 
-func DecodeStructArray[V any, H DecodableHelper[V]](d *Decoder, value *[]V) (int, error) {
+func DecodeStructArray[V any, H DecodableHelper[V]](d *Decoder, value []V) (int, error) {
 	total := 0
-	for i := range *value {
-		n, err := H(&(*value)[i]).DecodeScale(d)
+	for i := range value {
+		n, err := H(&value[i]).DecodeScale(d)
 		if err != nil {
 			return 0, err
 		}
@@ -209,8 +207,7 @@ func DecodeStructArray[V any, H DecodableHelper[V]](d *Decoder, value *[]V) (int
 }
 
 func DecodeOption[V any, H DecodableHelper[V]](d *Decoder) (*V, int, error) {
-	var exists bool
-	total, err := DecodeBool(d, &exists)
+	exists, total, err := DecodeBool(d)
 	if !exists || err != nil {
 		return nil, total, err
 	}

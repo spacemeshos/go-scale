@@ -169,7 +169,7 @@ func EncodeLen(e *Encoder, v uint32) (int, error) {
 	return EncodeCompact32(e, v)
 }
 
-func EncodeOption[V Encodable](e *Encoder, value *V) (int, error) {
+func EncodeOption[V any, H EncodeHelper[V]](e *Encoder, value *V) (int, error) {
 	if value == nil {
 		return EncodeBool(e, false)
 	}
@@ -177,7 +177,7 @@ func EncodeOption[V Encodable](e *Encoder, value *V) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	n, err := (*value).EncodeScale(e)
+	n, err := H(value).EncodeScale(e)
 	if err != nil {
 		return 0, err
 	}

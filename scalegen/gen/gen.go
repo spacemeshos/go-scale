@@ -54,8 +54,13 @@ var (
 		`,
 	}
 	structArray = temp{
-		encode: generic.encode,
-		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, &t.{{ .Name }}); err != nil {
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]); err != nil {
+			return total, err
+		} else {
+			total += n
+		}
+		`,
+		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, t.{{ .Name }}[:]); err != nil {
 			return total, err
 		} else {
 			total += n
@@ -307,7 +312,9 @@ func decodeMethod(w io.Writer, gc *genContext, tc *typeContext) error {
 		if tctx.ScaleType == "Object" {
 			tmp = object
 		}
-		if strings.Contains(stype, "Struct") || strings.Contains(stype, "Option") {
+		if stype == "StructSlice" {
+			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
+		} else if strings.Contains(stype, "Struct") || strings.Contains(stype, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
 		log.Printf("type context %+v", tctx)

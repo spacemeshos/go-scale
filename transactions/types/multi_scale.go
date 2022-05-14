@@ -103,7 +103,7 @@ func (t *SpawnMultiPayload) EncodeScale(enc *scale.Encoder) (total int, err erro
 	}
 
 	// field Keys (1)
-	if n, err := scale.EncodeStructArray(enc, t.Keys); err != nil {
+	if n, err := scale.EncodeStructArray(enc, t.Keys[:]); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -135,7 +135,7 @@ func (t *SpawnMultiPayload) DecodeScale(dec *scale.Decoder) (total int, err erro
 	}
 
 	// field Keys (1)
-	if n, err := scale.DecodeStructArray(dec, &t.Keys); err != nil {
+	if n, err := scale.DecodeStructArray(dec, t.Keys[:]); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -168,7 +168,7 @@ func (t *MultiSig) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	}
 
 	// field Signatures (1)
-	if n, err := scale.EncodeStructArray(enc, t.Signatures); err != nil {
+	if n, err := scale.EncodeStructArray(enc, t.Signatures[:]); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -187,7 +187,7 @@ func (t *MultiSig) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	}
 
 	// field Signatures (1)
-	if n, err := scale.DecodeStructArray(dec, &t.Signatures); err != nil {
+	if n, err := scale.DecodeStructArray(dec, t.Signatures[:]); err != nil {
 		return total, err
 	} else {
 		total += n
