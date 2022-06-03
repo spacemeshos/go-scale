@@ -173,6 +173,25 @@ func DecodeStruct[V any, H DecodableHelper[V]](d *Decoder) (V, int, error) {
 	return empty, n, err
 }
 
+func DecodeByteSlice(d *Decoder, value *[]byte) (int, error) {
+	lth, total, err := DecodeLen(d)
+	if err != nil {
+		return 0, err
+	}
+	if uint32(len(*value)) < lth {
+		*value = make([]byte, lth)
+	}
+	n, err := DecodeByteArray(d, *value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, nil
+}
+
+func DecodeByteArray(d *Decoder, value []byte) (int, error) {
+	return d.r.Read(value)
+}
+
 func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error) {
 	lth, total, err := DecodeLen(d)
 	if err != nil {

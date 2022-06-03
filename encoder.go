@@ -39,6 +39,22 @@ type Encoder struct {
 	scratch [9]byte
 }
 
+func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)))
+	if err != nil {
+		return 0, err
+	}
+	n, err := EncodeByteArray(e, value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, nil
+}
+
+func EncodeByteArray(e *Encoder, value []byte) (int, error) {
+	return e.w.Write(value)
+}
+
 func EncodeStructSlice[V any, H EncodeHelper[V]](e *Encoder, value []V) (int, error) {
 	total, err := EncodeLen(e, uint32(len(value)))
 	if err != nil {
