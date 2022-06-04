@@ -1,6 +1,6 @@
 package examples
 
-//go:generate scalegen -pkg examples -file ex2_scale.go -types Ex2,Smth -imports github.com/spacemeshos/go-scale/examples
+//go:generate scalegen
 
 type Ex2 struct {
 	Slice []Ex2

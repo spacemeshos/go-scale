@@ -9,7 +9,7 @@ type Decodable interface {
 	DecodeScale(*Decoder) (int, error)
 }
 
-type DecodableHelper[B any] interface {
+type DecodablePtr[B any] interface {
 	Decodable
 	*B
 }
@@ -47,6 +47,41 @@ func DecodeCompact8(d *Decoder) (uint8, int, error) {
 		}
 		total += n
 		value = uint8((uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2)
+	}
+	return value, total, nil
+}
+
+func DecodeCompact16(d *Decoder) (uint16, int, error) {
+	var (
+		value uint16
+		total int
+	)
+	n, err := d.r.Read(d.scratch[:1])
+	if err != nil {
+		return value, 0, err
+	}
+	total += n
+	switch d.scratch[0] % 4 {
+	case 0:
+		value = uint16(d.scratch[0]) >> 2
+	case 1:
+		n, err := d.r.Read(d.scratch[1:2])
+		if err != nil {
+			return value, 0, err
+		}
+		total += n
+		value = (uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2
+	case 2:
+		n, err := d.r.Read(d.scratch[1:4])
+		if err != nil {
+			return value, 0, err
+		}
+		total += n
+		value = uint16(uint32(d.scratch[0])|
+			uint32(d.scratch[1])<<8|
+			uint32(d.scratch[2])<<16|
+			uint32(d.scratch[3])<<24) >> 2
+
 	}
 	return value, total, nil
 }
@@ -167,7 +202,7 @@ func DecodeBool(d *Decoder) (bool, int, error) {
 	return false, n, nil
 }
 
-func DecodeStruct[V any, H DecodableHelper[V]](d *Decoder) (V, int, error) {
+func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 	var empty V
 	n, err := H(&empty).DecodeScale(d)
 	return empty, n, err
@@ -192,7 +227,7 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 	return d.r.Read(value)
 }
 
-func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error) {
+func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
 	lth, total, err := DecodeLen(d)
 	if err != nil {
 		return nil, 0, err
@@ -213,7 +248,7 @@ func DecodeStructSlice[V any, H DecodableHelper[V]](d *Decoder) ([]V, int, error
 	return value, total, nil
 }
 
-func DecodeStructArray[V any, H DecodableHelper[V]](d *Decoder, value []V) (int, error) {
+func DecodeStructArray[V any, H DecodablePtr[V]](d *Decoder, value []V) (int, error) {
 	total := 0
 	for i := range value {
 		n, err := H(&value[i]).DecodeScale(d)
@@ -225,7 +260,7 @@ func DecodeStructArray[V any, H DecodableHelper[V]](d *Decoder, value []V) (int,
 	return total, nil
 }
 
-func DecodeOption[V any, H DecodableHelper[V]](d *Decoder) (*V, int, error) {
+func DecodeOption[V any, H DecodablePtr[V]](d *Decoder) (*V, int, error) {
 	exists, total, err := DecodeBool(d)
 	if !exists || err != nil {
 		return nil, total, err

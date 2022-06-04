@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spacemeshos/go-scale/scalegen/gen"
@@ -12,22 +12,25 @@ import (
 
 func main() {
 	var (
-		pkg       string
-		typesfile string
-		types     string
-		imports   string
+		types    string
+		original = os.Getenv("GOFILE")
+		split    []string
 	)
-	flag.StringVar(&pkg, "pkg", "", "")
-	flag.StringVar(&typesfile, "file", "", "")
-	flag.StringVar(&types, "types", "", "")
-	flag.StringVar(&imports, "imports", "", "")
+	flag.StringVar(&types, "types", "", "autodiscovers types if not provided")
 	flag.Parse()
 
-	for _, ev := range []string{"GOARCH", "GOOS", "GOFILE", "GOLINE", "GOPACKAGE", "DOLLAR"} {
-		fmt.Println("  ", ev, "=", os.Getenv(ev))
+	if len(types) > 0 {
+		split = strings.Split(types, ",")
 	}
-
-	if err := gen.RunGenerate(os.Getenv("GOPACKAGE"), typesfile, strings.Split(imports, ","), strings.Split(types, ",")); err != nil {
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("failed to get wd %v", err)
+	}
+	if err := gen.RunGenerate(
+		filepath.Join(wd, original),
+		filepath.Join(wd, gen.ScaleFile(original)),
+		split,
+	); err != nil {
 		log.Fatalf("failed to generate: %v", err)
 	}
 }

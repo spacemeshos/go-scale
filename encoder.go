@@ -25,7 +25,7 @@ type Encodable interface {
 	EncodeScale(*Encoder) (int, error)
 }
 
-type EncodeHelper[B any] interface {
+type EncodablePtr[B any] interface {
 	Encodable
 	*B
 }
@@ -55,7 +55,7 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 	return e.w.Write(value)
 }
 
-func EncodeStructSlice[V any, H EncodeHelper[V]](e *Encoder, value []V) (int, error) {
+func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
 	total, err := EncodeLen(e, uint32(len(value)))
 	if err != nil {
 		return 0, err
@@ -70,7 +70,7 @@ func EncodeStructSlice[V any, H EncodeHelper[V]](e *Encoder, value []V) (int, er
 	return total, nil
 }
 
-func EncodeStructArray[V any, H EncodeHelper[V]](e *Encoder, value []V) (int, error) {
+func EncodeStructArray[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
 	total := 0
 	for i := range value {
 		n, err := H(&value[i]).EncodeScale(e)
@@ -185,7 +185,7 @@ func EncodeLen(e *Encoder, v uint32) (int, error) {
 	return EncodeCompact32(e, v)
 }
 
-func EncodeOption[V any, H EncodeHelper[V]](e *Encoder, value *V) (int, error) {
+func EncodeOption[V any, H EncodablePtr[V]](e *Encoder, value *V) (int, error) {
 	if value == nil {
 		return EncodeBool(e, false)
 	}
@@ -200,7 +200,7 @@ func EncodeOption[V any, H EncodeHelper[V]](e *Encoder, value *V) (int, error) {
 	return total + n, nil
 }
 
-func EncodeStruct[V any, H EncodeHelper[V]](e *Encoder, value V) (int, error) {
+func EncodeStruct[V any, H EncodablePtr[V]](e *Encoder, value V) (int, error) {
 	n, err := H(&value).EncodeScale(e)
 	if err != nil {
 		return 0, err
