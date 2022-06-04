@@ -208,19 +208,21 @@ func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 	return empty, n, err
 }
 
-func DecodeByteSlice(d *Decoder, value *[]byte) (int, error) {
+func DecodeByteSlice(d *Decoder) ([]byte, int, error) {
 	lth, total, err := DecodeLen(d)
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	if uint32(len(*value)) < lth {
-		*value = make([]byte, lth)
+	if lth == 0 {
+		return nil, total, nil
 	}
-	n, err := DecodeByteArray(d, *value)
+	value := make([]byte, lth)
+
+	n, err := DecodeByteArray(d, value)
 	if err != nil {
-		return 0, err
+		return value, 0, err
 	}
-	return total + n, nil
+	return value, total + n, nil
 }
 
 func DecodeByteArray(d *Decoder, value []byte) (int, error) {

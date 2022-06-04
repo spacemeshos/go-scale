@@ -58,7 +58,7 @@ var (
 		}
 		`,
 	}
-	structArray = temp{
+	array = temp{
 		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]); err != nil {
 			return total, err
 		} else {
@@ -87,17 +87,6 @@ var (
 		`,
 	}
 )
-
-func getTemplate(stype string) temp {
-	switch stype {
-	case "StructArray":
-		return structArray
-	case "Object":
-		return object
-	default:
-		return generic
-	}
-}
 
 func getAction(tm temp, action int) string {
 	switch action {
@@ -248,16 +237,27 @@ func getScaleType(t reflect.Type) (string, error) {
 		return "Option", nil
 	case reflect.Slice:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "Struct", nil
+			return "ByteSlice", nil
 		}
 		return "StructSlice", nil
 	case reflect.Array:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "Object", nil
+			return "ByteArray", nil
 		}
 		return "StructArray", nil
 	}
 	return "", fmt.Errorf("type %v is not supported", t.Kind())
+}
+
+func getTemplate(stype string) temp {
+	switch stype {
+	case "StructArray", "ByteArray":
+		return array
+	case "Object":
+		return object
+	default:
+		return generic
+	}
 }
 
 func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) error {
