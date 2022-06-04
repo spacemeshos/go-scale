@@ -3,6 +3,7 @@ module github.com/spacemeshos/go-scale
 go 1.18
 
 require (
+	github.com/google/gofuzz v1.2.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/mod v0.5.1
 )
