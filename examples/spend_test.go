@@ -6,7 +6,16 @@ import (
 
 	fuzz "github.com/google/gofuzz"
 	"github.com/spacemeshos/go-scale"
+	"github.com/spacemeshos/go-scale/tester"
 )
+
+func FuzzSpendConsistency(f *testing.F) {
+	tester.FuzzConsistency[Spend](f)
+}
+
+func FuzzSpendSafety(f *testing.F) {
+	tester.FuzzSafety[Spend](f)
+}
 
 func BenchmarkSpend(b *testing.B) {
 	fuzzer := fuzz.NewWithSeed(1001)

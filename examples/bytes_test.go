@@ -13,3 +13,11 @@ func FuzzBytes20Consistency(f *testing.F) {
 func FuzzBytes20Safety(f *testing.F) {
 	tester.FuzzSafety[Bytes20](f)
 }
+
+func FuzzBytesSliceConsistency(f *testing.F) {
+	tester.FuzzConsistency[Slice](f)
+}
+
+func FuzzBytesSliceSafety(f *testing.F) {
+	tester.FuzzSafety[Slice](f)
+}
