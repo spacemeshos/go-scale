@@ -13,14 +13,12 @@ func (t *Ex2) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Array (1)
 	if n, err := scale.EncodeStructArray(enc, t.Array[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -32,14 +30,12 @@ func (t *Ex2) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Slice = field
 	}
-
 	// field Array (1)
 	if n, err := scale.DecodeStructArray(dec, t.Array[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -50,7 +46,6 @@ func (t *Smth) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -62,6 +57,5 @@ func (t *Smth) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Val = field
 	}
-
 	return total, nil
 }

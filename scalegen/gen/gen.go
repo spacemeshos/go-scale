@@ -294,7 +294,6 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		if err := executeTemplate(w, getAction(getTemplate(stype), action), tctx); err != nil {
 			return err
 		}
-		fmt.Fprintln(w)
 	}
 	fmt.Fprintln(w, "return total, nil")
 	fmt.Fprintln(w, "}")

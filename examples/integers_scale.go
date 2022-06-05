@@ -13,7 +13,6 @@ func (t *U8) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -25,7 +24,6 @@ func (t *U8) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Value = field
 	}
-
 	return total, nil
 }
 
@@ -36,7 +34,6 @@ func (t *U16) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -48,7 +45,6 @@ func (t *U16) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Value = field
 	}
-
 	return total, nil
 }
 
@@ -59,7 +55,6 @@ func (t *U32) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -71,7 +66,6 @@ func (t *U32) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Value = field
 	}
-
 	return total, nil
 }
 
@@ -82,7 +76,6 @@ func (t *U64) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -94,6 +87,5 @@ func (t *U64) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Value = field
 	}
-
 	return total, nil
 }

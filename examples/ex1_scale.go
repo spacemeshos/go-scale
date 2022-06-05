@@ -13,14 +13,12 @@ func (t *Ex1) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Bool (1)
 	if n, err := scale.EncodeBool(enc, t.Bool); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -32,7 +30,6 @@ func (t *Ex1) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Option = field
 	}
-
 	// field Bool (1)
 	if field, n, err := scale.DecodeBool(dec); err != nil {
 		return total, err
@@ -40,6 +37,5 @@ func (t *Ex1) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Bool = field
 	}
-
 	return total, nil
 }

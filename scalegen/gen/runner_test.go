@@ -23,7 +23,7 @@ func TestGoldenExamples(t *testing.T) {
 
 	for _, file := range files {
 		file := file
-		if strings.Contains(file.Name(), scaleSuffix) {
+		if strings.Contains(file.Name(), scaleSuffix) || strings.Contains(file.Name(), "test.go") {
 			continue
 		}
 		t.Run(file.Name(), func(t *testing.T) {

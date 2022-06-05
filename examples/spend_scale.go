@@ -13,14 +13,12 @@ func (t *Spend) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Body (1)
 	if n, err := t.Body.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -32,14 +30,12 @@ func (t *Spend) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Type = field
 	}
-
 	// field Body (1)
 	if n, err := t.Body.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -50,21 +46,18 @@ func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Selector (1)
 	if n, err := scale.EncodeCompact8(enc, t.Selector); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	// field Payload (2)
 	if n, err := t.Payload.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -75,7 +68,6 @@ func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Selector (1)
 	if field, n, err := scale.DecodeCompact8(dec); err != nil {
 		return total, err
@@ -83,14 +75,12 @@ func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Selector = field
 	}
-
 	// field Payload (2)
 	if n, err := t.Payload.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -101,28 +91,24 @@ func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Nonce (1)
 	if n, err := t.Nonce.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	// field GasPrice (2)
 	if n, err := scale.EncodeCompact32(enc, t.GasPrice); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	// field Signature (3)
 	if n, err := scale.EncodeByteArray(enc, t.Signature[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -133,14 +119,12 @@ func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Nonce (1)
 	if n, err := t.Nonce.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	// field GasPrice (2)
 	if field, n, err := scale.DecodeCompact32(dec); err != nil {
 		return total, err
@@ -148,14 +132,12 @@ func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.GasPrice = field
 	}
-
 	// field Signature (3)
 	if n, err := scale.DecodeByteArray(dec, t.Signature[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -166,14 +148,12 @@ func (t *SpendArguments) EncodeScale(enc *scale.Encoder) (total int, err error) 
 	} else {
 		total += n
 	}
-
 	// field Amount (1)
 	if n, err := scale.EncodeCompact64(enc, t.Amount); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -184,7 +164,6 @@ func (t *SpendArguments) DecodeScale(dec *scale.Decoder) (total int, err error) 
 	} else {
 		total += n
 	}
-
 	// field Amount (1)
 	if field, n, err := scale.DecodeCompact64(dec); err != nil {
 		return total, err
@@ -192,7 +171,6 @@ func (t *SpendArguments) DecodeScale(dec *scale.Decoder) (total int, err error) 
 		total += n
 		t.Amount = field
 	}
-
 	return total, nil
 }
 
@@ -203,14 +181,12 @@ func (t *SpendNonce) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	} else {
 		total += n
 	}
-
 	// field Bitfield (1)
 	if n, err := scale.EncodeCompact64(enc, t.Bitfield); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-
 	return total, nil
 }
 
@@ -222,7 +198,6 @@ func (t *SpendNonce) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Counter = field
 	}
-
 	// field Bitfield (1)
 	if field, n, err := scale.DecodeCompact64(dec); err != nil {
 		return total, err
@@ -230,6 +205,5 @@ func (t *SpendNonce) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 		t.Bitfield = field
 	}
-
 	return total, nil
 }
