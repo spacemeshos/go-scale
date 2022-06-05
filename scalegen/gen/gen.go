@@ -290,7 +290,6 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
 		log.Printf("type context %+v", tctx)
-		fmt.Fprintf(w, "// field %v (%d)\n", field.Name, i)
 		if err := executeTemplate(w, getAction(getTemplate(stype), action), tctx); err != nil {
 			return err
 		}

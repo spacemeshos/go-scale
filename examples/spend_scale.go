@@ -7,13 +7,11 @@ import (
 )
 
 func (t *Spend) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Type (0)
 	if n, err := scale.EncodeCompact8(enc, t.Type); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Body (1)
 	if n, err := t.Body.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
@@ -23,14 +21,12 @@ func (t *Spend) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *Spend) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Type (0)
 	if field, n, err := scale.DecodeCompact8(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 		t.Type = field
 	}
-	// field Body (1)
 	if n, err := t.Body.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
@@ -40,19 +36,16 @@ func (t *Spend) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Adress (0)
 	if n, err := scale.EncodeByteArray(enc, t.Adress[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Selector (1)
 	if n, err := scale.EncodeCompact8(enc, t.Selector); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Payload (2)
 	if n, err := t.Payload.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
@@ -62,20 +55,17 @@ func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Adress (0)
 	if n, err := scale.DecodeByteArray(dec, t.Adress[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Selector (1)
 	if field, n, err := scale.DecodeCompact8(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 		t.Selector = field
 	}
-	// field Payload (2)
 	if n, err := t.Payload.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
@@ -85,25 +75,21 @@ func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Arguments (0)
 	if n, err := t.Arguments.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Nonce (1)
 	if n, err := t.Nonce.EncodeScale(enc); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field GasPrice (2)
 	if n, err := scale.EncodeCompact32(enc, t.GasPrice); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Signature (3)
 	if n, err := scale.EncodeByteArray(enc, t.Signature[:]); err != nil {
 		return total, err
 	} else {
@@ -113,26 +99,22 @@ func (t *SpendPayload) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Arguments (0)
 	if n, err := t.Arguments.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Nonce (1)
 	if n, err := t.Nonce.DecodeScale(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field GasPrice (2)
 	if field, n, err := scale.DecodeCompact32(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 		t.GasPrice = field
 	}
-	// field Signature (3)
 	if n, err := scale.DecodeByteArray(dec, t.Signature[:]); err != nil {
 		return total, err
 	} else {
@@ -142,13 +124,11 @@ func (t *SpendPayload) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *SpendArguments) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Recipient (0)
 	if n, err := scale.EncodeByteArray(enc, t.Recipient[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Amount (1)
 	if n, err := scale.EncodeCompact64(enc, t.Amount); err != nil {
 		return total, err
 	} else {
@@ -158,13 +138,11 @@ func (t *SpendArguments) EncodeScale(enc *scale.Encoder) (total int, err error) 
 }
 
 func (t *SpendArguments) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Recipient (0)
 	if n, err := scale.DecodeByteArray(dec, t.Recipient[:]); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Amount (1)
 	if field, n, err := scale.DecodeCompact64(dec); err != nil {
 		return total, err
 	} else {
@@ -175,13 +153,11 @@ func (t *SpendArguments) DecodeScale(dec *scale.Decoder) (total int, err error) 
 }
 
 func (t *SpendNonce) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Counter (0)
 	if n, err := scale.EncodeCompact32(enc, t.Counter); err != nil {
 		return total, err
 	} else {
 		total += n
 	}
-	// field Bitfield (1)
 	if n, err := scale.EncodeCompact64(enc, t.Bitfield); err != nil {
 		return total, err
 	} else {
@@ -191,14 +167,12 @@ func (t *SpendNonce) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *SpendNonce) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Counter (0)
 	if field, n, err := scale.DecodeCompact32(dec); err != nil {
 		return total, err
 	} else {
 		total += n
 		t.Counter = field
 	}
-	// field Bitfield (1)
 	if field, n, err := scale.DecodeCompact64(dec); err != nil {
 		return total, err
 	} else {

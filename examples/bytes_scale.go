@@ -7,7 +7,6 @@ import (
 )
 
 func (t *Bytes20) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.EncodeByteArray(enc, t.Value[:]); err != nil {
 		return total, err
 	} else {
@@ -17,7 +16,6 @@ func (t *Bytes20) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *Bytes20) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.DecodeByteArray(dec, t.Value[:]); err != nil {
 		return total, err
 	} else {
@@ -27,7 +25,6 @@ func (t *Bytes20) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *Bytes32) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.EncodeByteArray(enc, t.Value[:]); err != nil {
 		return total, err
 	} else {
@@ -37,7 +34,6 @@ func (t *Bytes32) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *Bytes32) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.DecodeByteArray(dec, t.Value[:]); err != nil {
 		return total, err
 	} else {
@@ -47,7 +43,6 @@ func (t *Bytes32) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *Bytes64) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.EncodeByteArray(enc, t.Value[:]); err != nil {
 		return total, err
 	} else {
@@ -57,7 +52,6 @@ func (t *Bytes64) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *Bytes64) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.DecodeByteArray(dec, t.Value[:]); err != nil {
 		return total, err
 	} else {
@@ -67,7 +61,6 @@ func (t *Bytes64) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *Slice) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	// field Value (0)
 	if n, err := scale.EncodeByteSlice(enc, t.Value); err != nil {
 		return total, err
 	} else {
@@ -77,7 +70,6 @@ func (t *Slice) EncodeScale(enc *scale.Encoder) (total int, err error) {
 }
 
 func (t *Slice) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	// field Value (0)
 	if field, n, err := scale.DecodeByteSlice(dec); err != nil {
 		return total, err
 	} else {
