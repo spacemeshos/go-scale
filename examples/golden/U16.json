@@ -1,0 +1,14 @@
+{
+    "Object": {"Value": 256},
+    "Hex": "0104"
+}
+{
+    "Object": {"Value": 100000},
+    "Hex": "821a0600",
+    "Error": "value 100000 overflows uint16"
+}
+{
+    "Object": {"Value": 4294967296},
+    "Hex": "170000000001",
+    "Error": "value will overflow uint16"
+}

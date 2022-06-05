@@ -3,6 +3,7 @@ package scale
 import (
 	"fmt"
 	"io"
+	"math"
 )
 
 type Decodable interface {
@@ -46,7 +47,13 @@ func DecodeCompact8(d *Decoder) (uint8, int, error) {
 			return value, 0, err
 		}
 		total += n
-		value = uint8((uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2)
+		if rst := (uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2; rst > math.MaxUint8 {
+			return 0, 0, fmt.Errorf("value %d overflows uint8", rst)
+		} else {
+			value = uint8(rst)
+		}
+	default:
+		return 0, 0, fmt.Errorf("value will overflow uint8")
 	}
 	return value, total, nil
 }
@@ -77,11 +84,16 @@ func DecodeCompact16(d *Decoder) (uint16, int, error) {
 			return value, 0, err
 		}
 		total += n
-		value = uint16(uint32(d.scratch[0])|
-			uint32(d.scratch[1])<<8|
-			uint32(d.scratch[2])<<16|
-			uint32(d.scratch[3])<<24) >> 2
-
+		if rst := (uint32(d.scratch[0]) |
+			uint32(d.scratch[1])<<8 |
+			uint32(d.scratch[2])<<16 |
+			uint32(d.scratch[3])<<24) >> 2; rst > math.MaxUint16 {
+			return 0, 0, fmt.Errorf("value %d overflows uint16", rst)
+		} else {
+			value = uint16(rst)
+		}
+	default:
+		return 0, 0, fmt.Errorf("value will overflow uint16")
 	}
 	return value, total, nil
 }
@@ -151,7 +163,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 	)
 	n, err := d.r.Read(d.scratch[:1])
 	if err != nil {
-		return value, 0, err
+		return value, 0, fmt.Errorf("read compact header: %w", err)
 	}
 	total += n
 	switch d.scratch[0] % 4 {

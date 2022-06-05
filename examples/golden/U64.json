@@ -1,0 +1,8 @@
+{
+    "Object": {"Value": 4294967296},
+    "Hex": "170000000001"
+}
+{
+    "Hex": "ff",
+    "Error": "invalid compact64 needs 63 bytes"
+}
