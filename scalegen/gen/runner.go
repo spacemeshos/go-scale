@@ -65,12 +65,13 @@ func getPkg(parsed *ast.File) string {
 	return parsed.Name.Name
 }
 
-func getModule(in string) (string, error) {
+func getModule(in string, parts []string) (string, error) {
 	if in == "/" {
 		return "", errors.New("not a module")
 	}
 	dir := filepath.Dir(in)
-	log.Printf("looking for go.mod in %s", dir)
+	log.Printf("looking for go.mod. file %s. directory %s. base %s",
+		in, dir, filepath.Base(dir))
 	modf := filepath.Join(dir, "go.mod")
 	if f, err := os.Open(modf); err == nil {
 		defer f.Close()
@@ -82,9 +83,15 @@ func getModule(in string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return parsed.Module.Mod.Path, nil
+		parts = append(parts, parsed.Module.Mod.Path)
+		for i := 0; i < len(parts)/2; i++ {
+			j := len(parts) - 1 - i
+			parts[i], parts[j] = parts[j], parts[i]
+		}
+		parts = parts[:len(parts)-1]
+		return filepath.Join(parts...), nil
 	}
-	return getModule(dir)
+	return getModule(dir, append(parts, filepath.Base(dir)))
 }
 
 const scaleSuffix = "_scale.go"
@@ -114,7 +121,7 @@ func RunGenerate(in, out string, types []string) error {
 	}
 	pkg := getPkg(parsed)
 	log.Printf("discovered package '%s'", pkg)
-	module, err := getModule(in)
+	module, err := getModule(in, nil)
 	if err != nil {
 		return err
 	}
