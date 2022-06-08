@@ -23,14 +23,14 @@ const program = `package main
 import (
 	"log"
 
-	"github.com/spacemeshos/go-scale/gen"
+	"github.com/spacemeshos/go-scale"
 
 	{{ range $pkg := .Imports }}"{{ $pkg }}"
     {{ end }}
 )
 
 func main() {
-	if err := gen.Generate("{{ .Package }}", "{{ .Output }}", {{ .Objects }}); err != nil {
+	if err := scale.Generate("{{ .Package }}", "{{ .Output }}", {{ .Objects }}); err != nil {
 		log.Fatalf("Generate failed with %v", err)
 	}
 }
