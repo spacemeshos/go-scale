@@ -1,4 +1,4 @@
-package gen
+package runner
 
 import (
 	"io/ioutil"

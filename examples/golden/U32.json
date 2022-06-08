@@ -3,7 +3,6 @@
     "Hex": "821a0600"
 }
 {
-    "Object": {"Value": 4294967296},
     "Hex": "170000000001",
     "Error": "invalid compact32 needs 5 bytes"
 }

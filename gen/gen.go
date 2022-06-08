@@ -2,7 +2,6 @@ package gen
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/format"
 	"html/template"
@@ -228,12 +227,6 @@ func getScaleType(t reflect.Type) (string, error) {
 	case reflect.Struct:
 		return "Object", nil
 	case reflect.Ptr:
-		switch t.Elem().Kind() {
-		case reflect.Array:
-			return "", errors.New("ptr to array is not supported")
-		case reflect.Slice:
-			return "", errors.New("ptr to slice is not supported")
-		}
 		return "Option", nil
 	case reflect.Slice:
 		if t.Elem().Kind() == reflect.Uint8 {

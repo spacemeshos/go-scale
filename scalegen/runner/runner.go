@@ -1,4 +1,4 @@
-package gen
+package runner
 
 import (
 	"errors"
@@ -23,7 +23,7 @@ const program = `package main
 import (
 	"log"
 
-	"github.com/spacemeshos/go-scale/scalegen/gen"
+	"github.com/spacemeshos/go-scale/gen"
 
 	{{ range $pkg := .Imports }}"{{ $pkg }}"
     {{ end }}

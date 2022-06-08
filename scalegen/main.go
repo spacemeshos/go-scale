@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spacemeshos/go-scale/scalegen/gen"
+	"github.com/spacemeshos/go-scale/scalegen/runner"
 )
 
 func main() {
@@ -26,9 +26,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to get wd %v", err)
 	}
-	if err := gen.RunGenerate(
+	if err := runner.RunGenerate(
 		filepath.Join(wd, original),
-		filepath.Join(wd, gen.ScaleFile(original)),
+		filepath.Join(wd, runner.ScaleFile(original)),
 		split,
 	); err != nil {
 		log.Fatalf("failed to generate: %v", err)
