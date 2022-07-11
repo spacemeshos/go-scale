@@ -40,7 +40,7 @@ type Encoder struct {
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)))
+	total, err := EncodeLen(e, uint32(len(value)), maxElements)
 	if err != nil {
 		return 0, err
 	}
@@ -56,7 +56,22 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)))
+	total, err := EncodeLen(e, uint32(len(value)), maxElements)
+	if err != nil {
+		return 0, err
+	}
+	for i := range value {
+		n, err := H(&value[i]).EncodeScale(e)
+		if err != nil {
+			return 0, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
 	}
@@ -178,7 +193,7 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 	return encodeOneOne(e, uint64(v))
 }
 
-func EncodeLen(e *Encoder, v uint32) (int, error) {
+func EncodeLen(e *Encoder, v uint32, maxElements uint32) (int, error) {
 	if v > maxElements {
 		return 0, fmt.Errorf("max elements in the collection is set to %v", maxElements)
 	}

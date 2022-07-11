@@ -145,12 +145,12 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 	return value, total, nil
 }
 
-func DecodeLen(d *Decoder) (uint32, int, error) {
+func DecodeLen(d *Decoder, limit uint32) (uint32, int, error) {
 	v, n, err := DecodeCompact32(d)
 	if err != nil {
 		return v, n, err
 	}
-	if v > maxElements {
+	if v > limit {
 		return v, n, fmt.Errorf("can't decode more than %v elements", maxElements)
 	}
 	return v, n, err
@@ -221,7 +221,7 @@ func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 }
 
 func DecodeByteSlice(d *Decoder) ([]byte, int, error) {
-	lth, total, err := DecodeLen(d)
+	lth, total, err := DecodeLen(d, maxElements)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -242,7 +242,28 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 }
 
 func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
-	lth, total, err := DecodeLen(d)
+	lth, total, err := DecodeLen(d, maxElements)
+	if err != nil {
+		return nil, 0, err
+	}
+	if lth == 0 {
+		return nil, 0, err
+	}
+	value := make([]V, 0, lth)
+
+	for i := uint32(0); i < lth; i++ {
+		val, n, err := DecodeStruct[V, H](d)
+		if err != nil {
+			return nil, 0, err
+		}
+		value = append(value, val)
+		total += n
+	}
+	return value, total, nil
+}
+
+func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint32) ([]V, int, error) {
+	lth, total, err := DecodeLen(d, limit)
 	if err != nil {
 		return nil, 0, err
 	}

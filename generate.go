@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -212,7 +213,7 @@ type typeContext struct {
 	ParentPackage string
 }
 
-func getScaleType(t reflect.Type) (string, error) {
+func getScaleType(t reflect.Type, tag reflect.StructTag) (string, error) {
 	switch t.Kind() {
 	case reflect.Bool:
 		return "Bool", nil
@@ -232,6 +233,15 @@ func getScaleType(t reflect.Type) (string, error) {
 		if t.Elem().Kind() == reflect.Uint8 {
 			return "ByteSlice", nil
 		}
+		scaleTag, exists := tag.Lookup("scale")
+		log.Printf("scale tag = %s\n", scaleTag)
+		if exists && scaleTag != "" {
+			maxElements := getMaxElements(scaleTag)
+			log.Printf("max elements = %d\n", maxElements)
+			if maxElements > 0 {
+				return "StructSliceWithLimit", nil
+			}
+		}
 		return "StructSlice", nil
 	case reflect.Array:
 		if t.Elem().Kind() == reflect.Uint8 {
@@ -240,6 +250,34 @@ func getScaleType(t reflect.Type) (string, error) {
 		return "StructArray", nil
 	}
 	return "", fmt.Errorf("type %v is not supported", t.Kind())
+}
+
+func getMaxElements(scaleTagValue string) uint32 {
+	if scaleTagValue == "" {
+		return 0
+	}
+	pairs := strings.Split(scaleTagValue, ",")
+	if len(pairs) == 0 {
+		return 0
+	}
+	var maxElementsStr string
+	for _, pair := range pairs {
+		pair = strings.TrimSpace(pair)
+		data := strings.Split(pair, "=")
+		if len(data) < 2 {
+			continue
+		}
+		if data[0] != "max" {
+			continue
+		}
+		maxElementsStr = strings.TrimSpace(data[1])
+		break
+	}
+	maxElements, err := strconv.Atoi(maxElementsStr)
+	if err != nil {
+		return 0
+	}
+	return uint32(maxElements)
 }
 
 func getTemplate(stype string) temp {
@@ -264,7 +302,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 			continue
 		}
 
-		stype, err := getScaleType(field.Type)
+		stype, err := getScaleType(field.Type, field.Tag)
 		if err != nil {
 			return err
 		}
