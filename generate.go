@@ -2,6 +2,7 @@ package scale
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"html/template"
@@ -234,10 +235,11 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (string, error) {
 			return "ByteSlice", nil
 		}
 		scaleTag, exists := tag.Lookup("scale")
-		log.Printf("scale tag = %s\n", scaleTag)
 		if exists && scaleTag != "" {
-			maxElements := getMaxElements(scaleTag)
-			log.Printf("max elements = %d\n", maxElements)
+			maxElements, err := getMaxElements(scaleTag)
+			if err != nil {
+				return "", fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
+			}
 			if maxElements > 0 {
 				return "StructSliceWithLimit", nil
 			}
@@ -252,13 +254,13 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (string, error) {
 	return "", fmt.Errorf("type %v is not supported", t.Kind())
 }
 
-func getMaxElements(scaleTagValue string) uint32 {
+func getMaxElements(scaleTagValue string) (uint32, error) {
 	if scaleTagValue == "" {
-		return 0
+		return 0, errors.New("scale tag is not defined")
 	}
 	pairs := strings.Split(scaleTagValue, ",")
 	if len(pairs) == 0 {
-		return 0
+		return 0, errors.New("no max value found in scale tag")
 	}
 	var maxElementsStr string
 	for _, pair := range pairs {
@@ -273,11 +275,14 @@ func getMaxElements(scaleTagValue string) uint32 {
 		maxElementsStr = strings.TrimSpace(data[1])
 		break
 	}
+	if maxElementsStr == "" {
+		return 0, errors.New("no max value found in scale tag")
+	}
 	maxElements, err := strconv.Atoi(maxElementsStr)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("failed parsing max value: %w", err)
 	}
-	return uint32(maxElements)
+	return uint32(maxElements), nil
 }
 
 func getTemplate(stype string) temp {
