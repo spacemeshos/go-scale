@@ -45,13 +45,13 @@ var (
 		`,
 	}
 	generic = temp{
-		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}); err != nil {
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
 		}
 		`,
-		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec); err != nil {
+		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
@@ -60,13 +60,13 @@ var (
 		`,
 	}
 	array = temp{
-		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]); err != nil {
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
 		}
 		`,
-		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, t.{{ .Name }}[:]); err != nil {
+		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
@@ -208,50 +208,51 @@ type genContext struct {
 type typeContext struct {
 	Name          string
 	ScaleType     string
+	ScaleTypeArgs string
 	TypeName      string
 	TypeInfo      string
 	Type          reflect.Type
 	ParentPackage string
 }
 
-func getScaleType(t reflect.Type, tag reflect.StructTag) (string, error) {
+func getScaleType(t reflect.Type, tag reflect.StructTag) (string, string, error) {
 	switch t.Kind() {
 	case reflect.Bool:
-		return "Bool", nil
+		return "Bool", "", nil
 	case reflect.Uint8:
-		return "Compact8", nil
+		return "Compact8", "", nil
 	case reflect.Uint16:
-		return "Compact16", nil
+		return "Compact16", "", nil
 	case reflect.Uint32:
-		return "Compact32", nil
+		return "Compact32", "", nil
 	case reflect.Uint64:
-		return "Compact64", nil
+		return "Compact64", "", nil
 	case reflect.Struct:
-		return "Object", nil
+		return "Object", "", nil
 	case reflect.Ptr:
-		return "Option", nil
+		return "Option", "", nil
 	case reflect.Slice:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "ByteSlice", nil
+			return "ByteSlice", "", nil
 		}
 		scaleTag, exists := tag.Lookup("scale")
 		if exists && scaleTag != "" {
 			maxElements, err := getMaxElements(scaleTag)
 			if err != nil {
-				return "", fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
+				return "", "", fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
 			}
 			if maxElements > 0 {
-				return "StructSliceWithLimit", nil
+				return "StructSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
 			}
 		}
-		return "StructSlice", nil
+		return "StructSlice", "", nil
 	case reflect.Array:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "ByteArray", nil
+			return "ByteArray", "", nil
 		}
-		return "StructArray", nil
+		return "StructArray", "", nil
 	}
-	return "", fmt.Errorf("type %v is not supported", t.Kind())
+	return "", "", fmt.Errorf("type %v is not supported", t.Kind())
 }
 
 func getMaxElements(scaleTagValue string) (uint32, error) {
@@ -307,26 +308,27 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 			continue
 		}
 
-		stype, err := getScaleType(field.Type, field.Tag)
+		scaleType, scaleTypeArgs, err := getScaleType(field.Type, field.Tag)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed getting scale type: %w", err)
 		}
 
 		tctx := &typeContext{
 			Name:          field.Name,
 			Type:          field.Type,
 			TypeName:      fullTypeName(gc, tc, field.Type),
-			ScaleType:     stype,
+			ScaleType:     scaleType,
+			ScaleTypeArgs: scaleTypeArgs,
 			ParentPackage: tc.ParentPackage,
 		}
 
-		if stype == "StructSlice" {
+		if scaleType == "StructSlice" {
 			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
-		} else if strings.Contains(stype, "Struct") || strings.Contains(stype, "Option") {
+		} else if strings.Contains(scaleType, "Struct") || strings.Contains(scaleType, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
 		log.Printf("type context %+v", tctx)
-		if err := executeTemplate(w, getAction(getTemplate(stype), action), tctx); err != nil {
+		if err := executeTemplate(w, getAction(getTemplate(scaleType), action), tctx); err != nil {
 			return err
 		}
 	}
