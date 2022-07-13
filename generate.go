@@ -232,18 +232,25 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (string, string, error)
 	case reflect.Ptr:
 		return "Option", "", nil
 	case reflect.Slice:
-		if t.Elem().Kind() == reflect.Uint8 {
-			return "ByteSlice", "", nil
-		}
 		scaleTag, exists := tag.Lookup("scale")
+		var (
+			maxElements uint32
+			err         error
+		)
 		if exists && scaleTag != "" {
-			maxElements, err := getMaxElements(scaleTag)
+			maxElements, err = getMaxElements(scaleTag)
 			if err != nil {
 				return "", "", fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
 			}
+		}
+		if t.Elem().Kind() == reflect.Uint8 {
 			if maxElements > 0 {
-				return "StructSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
+				return "ByteSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
 			}
+			return "ByteSlice", "", nil
+		}
+		if maxElements > 0 {
+			return "StructSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
 		}
 		return "StructSlice", "", nil
 	case reflect.Array:

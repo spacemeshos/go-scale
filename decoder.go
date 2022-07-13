@@ -221,7 +221,11 @@ func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 }
 
 func DecodeByteSlice(d *Decoder) ([]byte, int, error) {
-	lth, total, err := DecodeLen(d, maxElements)
+	return DecodeByteSliceWithLimit(d, maxElements)
+}
+
+func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
+	lth, total, err := DecodeLen(d, limit)
 	if err != nil {
 		return nil, 0, err
 	}

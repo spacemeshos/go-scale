@@ -40,7 +40,11 @@ type Encoder struct {
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)), maxElements)
+	return EncodeByteSliceWithLimit(e, value, maxElements)
+}
+
+func EncodeByteSliceWithLimit(e *Encoder, value []byte, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
 	}
