@@ -60,18 +60,7 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)), maxElements)
-	if err != nil {
-		return 0, err
-	}
-	for i := range value {
-		n, err := H(&value[i]).EncodeScale(e)
-		if err != nil {
-			return 0, err
-		}
-		total += n
-	}
-	return total, nil
+	return EncodeStructSliceWithLimit[V, H](e, value, maxElements)
 }
 
 func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {

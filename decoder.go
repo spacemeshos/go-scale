@@ -246,24 +246,7 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 }
 
 func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
-	lth, total, err := DecodeLen(d, maxElements)
-	if err != nil {
-		return nil, 0, err
-	}
-	if lth == 0 {
-		return nil, 0, err
-	}
-	value := make([]V, 0, lth)
-
-	for i := uint32(0); i < lth; i++ {
-		val, n, err := DecodeStruct[V, H](d)
-		if err != nil {
-			return nil, 0, err
-		}
-		value = append(value, val)
-		total += n
-	}
-	return value, total, nil
+	return DecodeStructSliceWithLimit[V, H](d, maxElements)
 }
 
 func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint32) ([]V, int, error) {
