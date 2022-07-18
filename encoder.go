@@ -186,9 +186,9 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 	return encodeOneOne(e, uint64(v))
 }
 
-func EncodeLen(e *Encoder, v uint32, maxElements uint32) (int, error) {
-	if v > maxElements {
-		return 0, fmt.Errorf("max elements in the collection is set to %v", maxElements)
+func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {
+	if v > limit {
+		return 0, fmt.Errorf("max elements in the collection is set to %v", limit)
 	}
 	return EncodeCompact32(e, v)
 }

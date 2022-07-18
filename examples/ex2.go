@@ -12,5 +12,5 @@ type Smth struct {
 }
 
 type StructSliceWithLimit struct {
-	Slice []Smth `scale:"max=10"`
+	Slice []Smth `scale:"max=2"`
 }

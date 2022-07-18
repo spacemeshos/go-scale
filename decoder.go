@@ -151,7 +151,7 @@ func DecodeLen(d *Decoder, limit uint32) (uint32, int, error) {
 		return v, n, err
 	}
 	if v > limit {
-		return v, n, fmt.Errorf("can't decode more than %v elements", MaxElements)
+		return v, n, fmt.Errorf("can't decode more than %v elements", limit)
 	}
 	return v, n, err
 }

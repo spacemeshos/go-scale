@@ -1,8 +1,13 @@
 package examples
 
 import (
+	"bytes"
+	"encoding/hex"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/spacemeshos/go-scale"
 	"github.com/spacemeshos/go-scale/tester"
 )
 
@@ -12,4 +17,28 @@ func FuzzStructSliceWithLimitConsistency(f *testing.F) {
 
 func FuzzStructSliceWithLimitSafety(f *testing.F) {
 	tester.FuzzSafety[StructSliceWithLimit](f)
+}
+
+func TestStructSliceWithLimitEncodeTooManyElements(t *testing.T) {
+	s := StructSliceWithLimit{
+		Slice: []Smth{
+			{Val: 1},
+			{Val: 2},
+			{Val: 3},
+		},
+	}
+	buf := bytes.NewBuffer(nil)
+	encoder := scale.NewEncoder(buf)
+	_, err := s.EncodeScale(encoder)
+	require.ErrorContains(t, err, "max elements in the collection is set to")
+}
+
+func TestStructSliceWithLimitDecodeTooManyElements(t *testing.T) {
+	var structSliceWith3ElementsHexStr = "0c04080c"
+	buf, err := hex.DecodeString(structSliceWith3ElementsHexStr)
+	require.NoError(t, err)
+	decoder := scale.NewDecoder(bytes.NewReader(buf))
+	var s StructSliceWithLimit
+	_, err = s.DecodeScale(decoder)
+	require.ErrorContains(t, err, "can't decode more than 2 elements")
 }

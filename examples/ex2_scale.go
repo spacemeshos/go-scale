@@ -55,7 +55,7 @@ func (t *Smth) DecodeScale(dec *scale.Decoder) (total int, err error) {
 }
 
 func (t *StructSliceWithLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeStructSliceWithLimit(enc, t.Slice, 10); err != nil {
+	if n, err := scale.EncodeStructSliceWithLimit(enc, t.Slice, 2); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -64,7 +64,7 @@ func (t *StructSliceWithLimit) EncodeScale(enc *scale.Encoder) (total int, err e
 }
 
 func (t *StructSliceWithLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	if field, n, err := scale.DecodeStructSliceWithLimit[Smth](dec, 10); err != nil {
+	if field, n, err := scale.DecodeStructSliceWithLimit[Smth](dec, 2); err != nil {
 		return total, err
 	} else {
 		total += n
