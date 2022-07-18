@@ -329,7 +329,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 			ParentPackage: tc.ParentPackage,
 		}
 
-		if scaleType == "StructSlice" {
+		if strings.HasPrefix(scaleType, "StructSlice") {
 			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
 		} else if strings.Contains(scaleType, "Struct") || strings.Contains(scaleType, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
