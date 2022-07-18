@@ -151,7 +151,7 @@ func DecodeLen(d *Decoder, limit uint32) (uint32, int, error) {
 		return v, n, err
 	}
 	if v > limit {
-		return v, n, fmt.Errorf("can't decode more than %v elements", maxElements)
+		return v, n, fmt.Errorf("can't decode more than %v elements", MaxElements)
 	}
 	return v, n, err
 }
@@ -221,7 +221,7 @@ func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 }
 
 func DecodeByteSlice(d *Decoder) ([]byte, int, error) {
-	return DecodeByteSliceWithLimit(d, maxElements)
+	return DecodeByteSliceWithLimit(d, MaxElements)
 }
 
 func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
@@ -246,7 +246,7 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 }
 
 func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
-	return DecodeStructSliceWithLimit[V, H](d, maxElements)
+	return DecodeStructSliceWithLimit[V, H](d, MaxElements)
 }
 
 func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint32) ([]V, int, error) {

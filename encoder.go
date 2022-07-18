@@ -7,8 +7,8 @@ import (
 	"math/bits"
 )
 
-const (
-	maxElements = 1 << 20
+var (
+	MaxElements uint32 = 1 << 20
 )
 
 const (
@@ -40,7 +40,7 @@ type Encoder struct {
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
-	return EncodeByteSliceWithLimit(e, value, maxElements)
+	return EncodeByteSliceWithLimit(e, value, MaxElements)
 }
 
 func EncodeByteSliceWithLimit(e *Encoder, value []byte, limit uint32) (int, error) {
@@ -60,7 +60,7 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
-	return EncodeStructSliceWithLimit[V, H](e, value, maxElements)
+	return EncodeStructSliceWithLimit[V, H](e, value, MaxElements)
 }
 
 func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {
