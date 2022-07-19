@@ -30,7 +30,7 @@ func TestStructSliceWithLimitEncodeTooManyElements(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	encoder := scale.NewEncoder(buf)
 	_, err := s.EncodeScale(encoder)
-	require.ErrorContains(t, err, "max elements in the collection is set to")
+	require.ErrorIs(t, err, scale.ErrEncodeTooManyElements)
 }
 
 func TestStructSliceWithLimitDecodeTooManyElements(t *testing.T) {
@@ -40,5 +40,5 @@ func TestStructSliceWithLimitDecodeTooManyElements(t *testing.T) {
 	decoder := scale.NewDecoder(bytes.NewReader(buf))
 	var s StructSliceWithLimit
 	_, err = s.DecodeScale(decoder)
-	require.ErrorContains(t, err, "can't decode more than 2 elements")
+	require.ErrorIs(t, err, scale.ErrDecodeTooManyElements)
 }

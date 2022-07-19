@@ -2,6 +2,7 @@ package scale
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"math/bits"
@@ -9,6 +10,11 @@ import (
 
 var (
 	MaxElements uint32 = 1 << 20
+)
+
+var (
+	// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
+	ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
 )
 
 const (
@@ -188,7 +194,7 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 
 func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {
 	if v > limit {
-		return 0, fmt.Errorf("max elements in the collection is set to %v", limit)
+		return 0, fmt.Errorf("%w: %d", ErrEncodeTooManyElements, limit)
 	}
 	return EncodeCompact32(e, v)
 }

@@ -1,9 +1,15 @@
 package scale
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
+)
+
+var (
+	// ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
+	ErrDecodeTooManyElements = errors.New("too many elements to decode in collection with scale limit set")
 )
 
 type Decodable interface {
@@ -151,7 +157,7 @@ func DecodeLen(d *Decoder, limit uint32) (uint32, int, error) {
 		return v, n, err
 	}
 	if v > limit {
-		return v, n, fmt.Errorf("can't decode more than %v elements", limit)
+		return v, n, fmt.Errorf("%w: %d", ErrDecodeTooManyElements, limit)
 	}
 	return v, n, err
 }
