@@ -17,3 +17,7 @@ type Bytes64 struct {
 type Slice struct {
 	Value []byte
 }
+
+type SliceWithLimit struct {
+	Value []byte `scale:"max=10"`
+}

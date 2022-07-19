@@ -2,6 +2,7 @@ package scale
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"html/template"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -43,13 +45,13 @@ var (
 		`,
 	}
 	generic = temp{
-		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}); err != nil {
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
 		}
 		`,
-		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec); err != nil {
+		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
@@ -58,13 +60,13 @@ var (
 		`,
 	}
 	array = temp{
-		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]); err != nil {
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
 		}
 		`,
-		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, t.{{ .Name }}[:]); err != nil {
+		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
 			return total, err
 		} else {
 			total += n
@@ -206,40 +208,89 @@ type genContext struct {
 type typeContext struct {
 	Name          string
 	ScaleType     string
+	ScaleTypeArgs string
 	TypeName      string
 	TypeInfo      string
 	Type          reflect.Type
 	ParentPackage string
 }
 
-func getScaleType(t reflect.Type) (string, error) {
+func getScaleType(t reflect.Type, tag reflect.StructTag) (string, string, error) {
 	switch t.Kind() {
 	case reflect.Bool:
-		return "Bool", nil
+		return "Bool", "", nil
 	case reflect.Uint8:
-		return "Compact8", nil
+		return "Compact8", "", nil
 	case reflect.Uint16:
-		return "Compact16", nil
+		return "Compact16", "", nil
 	case reflect.Uint32:
-		return "Compact32", nil
+		return "Compact32", "", nil
 	case reflect.Uint64:
-		return "Compact64", nil
+		return "Compact64", "", nil
 	case reflect.Struct:
-		return "Object", nil
+		return "Object", "", nil
 	case reflect.Ptr:
-		return "Option", nil
+		return "Option", "", nil
 	case reflect.Slice:
-		if t.Elem().Kind() == reflect.Uint8 {
-			return "ByteSlice", nil
+		scaleTag, exists := tag.Lookup("scale")
+		var (
+			maxElements uint32
+			err         error
+		)
+		if exists && scaleTag != "" {
+			maxElements, err = getMaxElements(scaleTag)
+			if err != nil {
+				return "", "", fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
+			}
 		}
-		return "StructSlice", nil
+		if t.Elem().Kind() == reflect.Uint8 {
+			if maxElements > 0 {
+				return "ByteSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
+			}
+			return "ByteSlice", "", nil
+		}
+		if maxElements > 0 {
+			return "StructSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
+		}
+		return "StructSlice", "", nil
 	case reflect.Array:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "ByteArray", nil
+			return "ByteArray", "", nil
 		}
-		return "StructArray", nil
+		return "StructArray", "", nil
 	}
-	return "", fmt.Errorf("type %v is not supported", t.Kind())
+	return "", "", fmt.Errorf("type %v is not supported", t.Kind())
+}
+
+func getMaxElements(scaleTagValue string) (uint32, error) {
+	if scaleTagValue == "" {
+		return 0, errors.New("scale tag is not defined")
+	}
+	pairs := strings.Split(scaleTagValue, ",")
+	if len(pairs) == 0 {
+		return 0, errors.New("no max value found in scale tag")
+	}
+	var maxElementsStr string
+	for _, pair := range pairs {
+		pair = strings.TrimSpace(pair)
+		data := strings.Split(pair, "=")
+		if len(data) < 2 {
+			continue
+		}
+		if data[0] != "max" {
+			continue
+		}
+		maxElementsStr = strings.TrimSpace(data[1])
+		break
+	}
+	if maxElementsStr == "" {
+		return 0, errors.New("no max value found in scale tag")
+	}
+	maxElements, err := strconv.Atoi(maxElementsStr)
+	if err != nil {
+		return 0, fmt.Errorf("failed parsing max value: %w", err)
+	}
+	return uint32(maxElements), nil
 }
 
 func getTemplate(stype string) temp {
@@ -264,26 +315,27 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 			continue
 		}
 
-		stype, err := getScaleType(field.Type)
+		scaleType, scaleTypeArgs, err := getScaleType(field.Type, field.Tag)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed getting scale type: %w", err)
 		}
 
 		tctx := &typeContext{
 			Name:          field.Name,
 			Type:          field.Type,
 			TypeName:      fullTypeName(gc, tc, field.Type),
-			ScaleType:     stype,
+			ScaleType:     scaleType,
+			ScaleTypeArgs: scaleTypeArgs,
 			ParentPackage: tc.ParentPackage,
 		}
 
-		if stype == "StructSlice" {
+		if strings.HasPrefix(scaleType, "StructSlice") {
 			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
-		} else if strings.Contains(stype, "Struct") || strings.Contains(stype, "Option") {
+		} else if strings.Contains(scaleType, "Struct") || strings.Contains(scaleType, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
 		log.Printf("type context %+v", tctx)
-		if err := executeTemplate(w, getAction(getTemplate(stype), action), tctx); err != nil {
+		if err := executeTemplate(w, getAction(getTemplate(scaleType), action), tctx); err != nil {
 			return err
 		}
 	}

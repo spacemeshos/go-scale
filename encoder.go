@@ -2,13 +2,19 @@ package scale
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"math/bits"
 )
 
-const (
-	maxElements = 1 << 20
+var (
+	MaxElements uint32 = 1 << 20
+)
+
+var (
+	// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
+	ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
 )
 
 const (
@@ -40,7 +46,11 @@ type Encoder struct {
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)))
+	return EncodeByteSliceWithLimit(e, value, MaxElements)
+}
+
+func EncodeByteSliceWithLimit(e *Encoder, value []byte, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
 	}
@@ -56,7 +66,11 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)))
+	return EncodeStructSliceWithLimit[V, H](e, value, MaxElements)
+}
+
+func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
 	}
@@ -178,9 +192,9 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 	return encodeOneOne(e, uint64(v))
 }
 
-func EncodeLen(e *Encoder, v uint32) (int, error) {
-	if v > maxElements {
-		return 0, fmt.Errorf("max elements in the collection is set to %v", maxElements)
+func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {
+	if v > limit {
+		return 0, fmt.Errorf("%w: %d", ErrEncodeTooManyElements, limit)
 	}
 	return EncodeCompact32(e, v)
 }

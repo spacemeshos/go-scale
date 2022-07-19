@@ -10,3 +10,7 @@ type Ex2 struct {
 type Smth struct {
 	Val uint32
 }
+
+type StructSliceWithLimit struct {
+	Slice []Smth `scale:"max=2"`
+}

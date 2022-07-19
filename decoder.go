@@ -1,9 +1,15 @@
 package scale
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
+)
+
+var (
+	// ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
+	ErrDecodeTooManyElements = errors.New("too many elements to decode in collection with scale limit set")
 )
 
 type Decodable interface {
@@ -145,13 +151,13 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 	return value, total, nil
 }
 
-func DecodeLen(d *Decoder) (uint32, int, error) {
+func DecodeLen(d *Decoder, limit uint32) (uint32, int, error) {
 	v, n, err := DecodeCompact32(d)
 	if err != nil {
 		return v, n, err
 	}
-	if v > maxElements {
-		return v, n, fmt.Errorf("can't decode more than %v elements", maxElements)
+	if v > limit {
+		return v, n, fmt.Errorf("%w: %d", ErrDecodeTooManyElements, limit)
 	}
 	return v, n, err
 }
@@ -221,7 +227,11 @@ func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 }
 
 func DecodeByteSlice(d *Decoder) ([]byte, int, error) {
-	lth, total, err := DecodeLen(d)
+	return DecodeByteSliceWithLimit(d, MaxElements)
+}
+
+func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
+	lth, total, err := DecodeLen(d, limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -242,7 +252,11 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 }
 
 func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
-	lth, total, err := DecodeLen(d)
+	return DecodeStructSliceWithLimit[V, H](d, MaxElements)
+}
+
+func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint32) ([]V, int, error) {
+	lth, total, err := DecodeLen(d, limit)
 	if err != nil {
 		return nil, 0, err
 	}
