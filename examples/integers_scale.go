@@ -7,7 +7,7 @@ import (
 )
 
 func (t *U8) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeCompact8(enc, t.Value); err != nil {
+	if n, err := scale.EncodeCompact8(enc, uint8(t.Value)); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -20,13 +20,13 @@ func (t *U8) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		return total, err
 	} else {
 		total += n
-		t.Value = field
+		t.Value = uint8(field)
 	}
 	return total, nil
 }
 
 func (t *U16) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeCompact16(enc, t.Value); err != nil {
+	if n, err := scale.EncodeCompact16(enc, uint16(t.Value)); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -39,13 +39,13 @@ func (t *U16) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		return total, err
 	} else {
 		total += n
-		t.Value = field
+		t.Value = uint16(field)
 	}
 	return total, nil
 }
 
 func (t *U32) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeCompact32(enc, t.Value); err != nil {
+	if n, err := scale.EncodeCompact32(enc, uint32(t.Value)); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -58,13 +58,13 @@ func (t *U32) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		return total, err
 	} else {
 		total += n
-		t.Value = field
+		t.Value = uint32(field)
 	}
 	return total, nil
 }
 
 func (t *U64) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeCompact64(enc, t.Value); err != nil {
+	if n, err := scale.EncodeCompact64(enc, uint64(t.Value)); err != nil {
 		return total, err
 	} else {
 		total += n
@@ -77,7 +77,7 @@ func (t *U64) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		return total, err
 	} else {
 		total += n
-		t.Value = field
+		t.Value = uint64(field)
 	}
 	return total, nil
 }

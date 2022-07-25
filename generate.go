@@ -59,6 +59,21 @@ var (
 		}
 		`,
 	}
+	genericTyped = temp{
+		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, {{.EncodeModifier}}(t.{{ .Name }}){{.ScaleTypeArgs}}); err != nil {
+			return total, err
+		} else {
+			total += n
+		}
+		`,
+		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec{{.ScaleTypeArgs}}); err != nil {
+			return total, err
+		} else {
+			total += n
+			t.{{ .Name }} = {{.DecodeModifier}}(field)
+		}
+		`,
+	}
 	array = temp{
 		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
 			return total, err
@@ -206,31 +221,50 @@ type genContext struct {
 }
 
 type typeContext struct {
-	Name          string
-	ScaleType     string
-	ScaleTypeArgs string
-	TypeName      string
-	TypeInfo      string
-	Type          reflect.Type
-	ParentPackage string
+	Name           string
+	ScaleType      string
+	ScaleTypeArgs  string
+	EncodeModifier string
+	DecodeModifier string
+	TypeName       string
+	TypeInfo       string
+	Type           reflect.Type
+	ParentPackage  string
 }
 
-func getScaleType(t reflect.Type, tag reflect.StructTag) (string, string, error) {
+type scaleType struct {
+	Name           string
+	Args           string
+	EncodeModifier string
+	DecodeModifier string
+}
+
+func getDecodeModifier(t string) string {
+	if !strings.Contains(t, ".") {
+		return t
+	}
+	parts := strings.Split(t, ".")
+	return parts[len(parts)-1]
+}
+
+func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
+	decodeModifier := getDecodeModifier(t.String())
+
 	switch t.Kind() {
 	case reflect.Bool:
-		return "Bool", "", nil
+		return scaleType{Name: "Bool"}, nil
 	case reflect.Uint8:
-		return "Compact8", "", nil
+		return scaleType{Name: "Compact8", EncodeModifier: "uint8", DecodeModifier: decodeModifier}, nil
 	case reflect.Uint16:
-		return "Compact16", "", nil
+		return scaleType{Name: "Compact16", EncodeModifier: "uint16", DecodeModifier: decodeModifier}, nil
 	case reflect.Uint32:
-		return "Compact32", "", nil
+		return scaleType{Name: "Compact32", EncodeModifier: "uint32", DecodeModifier: decodeModifier}, nil
 	case reflect.Uint64:
-		return "Compact64", "", nil
+		return scaleType{Name: "Compact64", EncodeModifier: "uint64", DecodeModifier: decodeModifier}, nil
 	case reflect.Struct:
-		return "Object", "", nil
+		return scaleType{Name: "Object"}, nil
 	case reflect.Ptr:
-		return "Option", "", nil
+		return scaleType{Name: "Option"}, nil
 	case reflect.Slice:
 		scaleTag, exists := tag.Lookup("scale")
 		var (
@@ -240,26 +274,26 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (string, string, error)
 		if exists && scaleTag != "" {
 			maxElements, err = getMaxElements(scaleTag)
 			if err != nil {
-				return "", "", fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
+				return scaleType{}, fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
 			}
 		}
 		if t.Elem().Kind() == reflect.Uint8 {
 			if maxElements > 0 {
-				return "ByteSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
+				return scaleType{Name: "ByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 			}
-			return "ByteSlice", "", nil
+			return scaleType{Name: "ByteSlice"}, nil
 		}
 		if maxElements > 0 {
-			return "StructSliceWithLimit", fmt.Sprintf(", %d", maxElements), nil
+			return scaleType{Name: "StructSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 		}
-		return "StructSlice", "", nil
+		return scaleType{Name: "StructSlice"}, nil
 	case reflect.Array:
 		if t.Elem().Kind() == reflect.Uint8 {
-			return "ByteArray", "", nil
+			return scaleType{Name: "ByteArray"}, nil
 		}
-		return "StructArray", "", nil
+		return scaleType{Name: "StructArray"}, nil
 	}
-	return "", "", fmt.Errorf("type %v is not supported", t.Kind())
+	return scaleType{}, fmt.Errorf("type %v is not supported", t.Kind())
 }
 
 func getMaxElements(scaleTagValue string) (uint32, error) {
@@ -293,12 +327,16 @@ func getMaxElements(scaleTagValue string) (uint32, error) {
 	return uint32(maxElements), nil
 }
 
-func getTemplate(stype string) temp {
-	switch stype {
-	case "StructArray", "ByteArray":
+func getTemplate(stype scaleType) temp {
+	switch {
+	case stype.Name == "StructArray":
 		return array
-	case "Object":
+	case stype.Name == "ByteArray":
+		return array
+	case stype.Name == "Object":
 		return object
+	case stype.EncodeModifier != "":
+		return genericTyped
 	default:
 		return generic
 	}
@@ -306,32 +344,36 @@ func getTemplate(stype string) temp {
 
 func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) error {
 	typ := tc.Type
+
 	if err := executeTemplate(w, getAction(start, action), tc); err != nil {
 		return err
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
+
 		if private(field) {
 			continue
 		}
 
-		scaleType, scaleTypeArgs, err := getScaleType(field.Type, field.Tag)
+		scaleType, err := getScaleType(field.Type, field.Tag)
 		if err != nil {
 			return fmt.Errorf("failed getting scale type: %w", err)
 		}
 
 		tctx := &typeContext{
-			Name:          field.Name,
-			Type:          field.Type,
-			TypeName:      fullTypeName(gc, tc, field.Type),
-			ScaleType:     scaleType,
-			ScaleTypeArgs: scaleTypeArgs,
-			ParentPackage: tc.ParentPackage,
+			Name:           field.Name,
+			Type:           field.Type,
+			TypeName:       fullTypeName(gc, tc, field.Type),
+			ScaleType:      scaleType.Name,
+			ScaleTypeArgs:  scaleType.Args,
+			EncodeModifier: scaleType.EncodeModifier,
+			DecodeModifier: scaleType.DecodeModifier,
+			ParentPackage:  tc.ParentPackage,
 		}
 
-		if strings.HasPrefix(scaleType, "StructSlice") {
+		if strings.HasPrefix(scaleType.Name, "StructSlice") {
 			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
-		} else if strings.Contains(scaleType, "Struct") || strings.Contains(scaleType, "Option") {
+		} else if strings.Contains(scaleType.Name, "Struct") || strings.Contains(scaleType.Name, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
 		log.Printf("type context %+v", tctx)
