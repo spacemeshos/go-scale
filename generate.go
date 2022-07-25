@@ -283,7 +283,6 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 			}
 			return scaleType{Name: "ByteSlice"}, nil
 		}
-		fmt.Printf("elem kind - %s\n", t.Elem().Kind().String())
 		if maxElements > 0 {
 			return scaleType{Name: "StructSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 		}
@@ -345,13 +344,13 @@ func getTemplate(stype scaleType) temp {
 
 func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) error {
 	typ := tc.Type
-	fmt.Printf("tc.Type: %s\n", tc.Type)
+
 	if err := executeTemplate(w, getAction(start, action), tc); err != nil {
 		return err
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		fmt.Printf("[%s] %s, type - %s\n", tc.Type, field.Name, field.Type)
+
 		if private(field) {
 			continue
 		}
