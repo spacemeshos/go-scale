@@ -251,6 +251,15 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 	return d.r.Read(value)
 }
 
+func DecodeString(d *Decoder) (string, int, error) {
+	return DecodeStringWithLimit(d, MaxElements)
+}
+
+func DecodeStringWithLimit(d *Decoder, limit uint32) (string, int, error) {
+	bytes, total, err := DecodeByteSliceWithLimit(d, limit)
+	return string(bytes), total, err
+}
+
 func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
 	return DecodeStructSliceWithLimit[V, H](d, MaxElements)
 }
