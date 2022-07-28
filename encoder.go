@@ -65,6 +65,10 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 	return e.w.Write(value)
 }
 
+func EncodeString(e *Encoder, value string) (int, error) {
+	return EncodeByteSlice(e, []byte(value))
+}
+
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
 	return EncodeStructSliceWithLimit[V, H](e, value, MaxElements)
 }

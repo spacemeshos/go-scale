@@ -253,6 +253,8 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 	switch t.Kind() {
 	case reflect.Bool:
 		return scaleType{Name: "Bool"}, nil
+	case reflect.String:
+		return scaleType{Name: "String"}, nil
 	case reflect.Uint8:
 		return scaleType{Name: "Compact8", EncodeModifier: "uint8", DecodeModifier: decodeModifier}, nil
 	case reflect.Uint16:
