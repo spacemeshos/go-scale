@@ -7,5 +7,5 @@ type StructWithString struct {
 }
 
 type StructWithStringLimit struct {
-	Value string `scale:"max=100"`
+	Value string `scale:"max=3"`
 }
