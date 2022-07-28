@@ -100,6 +100,30 @@ func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V,
 	return total, nil
 }
 
+func EncodeSliceOfByteSlice(e *Encoder, value [][]byte) (int, error) {
+	return EncodeSliceOfByteSliceWithLimit(e, value, MaxElements)
+}
+
+func EncodeSliceOfByteSliceWithLimit(e *Encoder, value [][]byte, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
+	if err != nil {
+		return 0, fmt.Errorf("failed encoding len for a slice of byte slices: %w", err)
+	}
+	for _, byteSlice := range value {
+		n, err := EncodeLen(e, uint32(len(byteSlice)), MaxElements)
+		if err != nil {
+			return 0, fmt.Errorf("failed encoding len for a byte slice: %w", err)
+		}
+		total += n
+		n, err = EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
+		if err != nil {
+			return 0, fmt.Errorf("failed encoding byte slice: %w", err)
+		}
+		total += n
+	}
+	return total, nil
+}
+
 func EncodeStructArray[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
 	total := 0
 	for i := range value {

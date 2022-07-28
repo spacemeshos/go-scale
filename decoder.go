@@ -285,6 +285,32 @@ func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint
 	return value, total, nil
 }
 
+func DecodeSliceOfByteSlice(d *Decoder) ([][]byte, int, error) {
+	return DecodeSliceOfByteSliceWithLimit(d, MaxElements)
+}
+
+func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, error) {
+	resultLen, total, err := DecodeLen(d, limit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed decoding len for a slice of byte slices: %w", err)
+	}
+	if resultLen == 0 {
+		return nil, 0, errors.New("resultLen can't be 0")
+	}
+	result := make([][]byte, 0, resultLen)
+
+	for i := uint32(0); i < resultLen; i++ {
+		val, n, err := DecodeByteSlice(d)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed decoding byte slice: %w", err)
+		}
+		result = append(result, val)
+		total += n
+	}
+
+	return result, total, nil
+}
+
 func DecodeStructArray[V any, H DecodablePtr[V]](d *Decoder, value []V) (int, error) {
 	total := 0
 	for i := range value {
