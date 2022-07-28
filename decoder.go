@@ -252,7 +252,11 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 }
 
 func DecodeString(d *Decoder) (string, int, error) {
-	bytes, total, err := DecodeByteSlice(d)
+	return DecodeStringWithLimit(d, MaxElements)
+}
+
+func DecodeStringWithLimit(d *Decoder, limit uint32) (string, int, error) {
+	bytes, total, err := DecodeByteSliceWithLimit(d, limit)
 	return string(bytes), total, err
 }
 

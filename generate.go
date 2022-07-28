@@ -254,6 +254,13 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 	case reflect.Bool:
 		return scaleType{Name: "Bool"}, nil
 	case reflect.String:
+		maxElements, err := getMaxElements(tag)
+		if err != nil {
+			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
+		}
+		if maxElements > 0 {
+			return scaleType{Name: "StringWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
+		}
 		return scaleType{Name: "String"}, nil
 	case reflect.Uint8:
 		return scaleType{Name: "Compact8", EncodeModifier: "uint8", DecodeModifier: decodeModifier}, nil
@@ -268,16 +275,9 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 	case reflect.Ptr:
 		return scaleType{Name: "Option"}, nil
 	case reflect.Slice:
-		scaleTag, exists := tag.Lookup("scale")
-		var (
-			maxElements uint32
-			err         error
-		)
-		if exists && scaleTag != "" {
-			maxElements, err = getMaxElements(scaleTag)
-			if err != nil {
-				return scaleType{}, fmt.Errorf("struct tag %s has incorrect max value: %w", scaleTag, err)
-			}
+		maxElements, err := getMaxElements(tag)
+		if err != nil {
+			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
 		if t.Elem().Kind() == reflect.Uint8 {
 			if maxElements > 0 {
@@ -298,7 +298,11 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 	return scaleType{}, fmt.Errorf("type %v is not supported", t.Kind())
 }
 
-func getMaxElements(scaleTagValue string) (uint32, error) {
+func getMaxElements(tag reflect.StructTag) (uint32, error) {
+	scaleTagValue, exists := tag.Lookup("scale")
+	if !exists || scaleTagValue == "" {
+		return 0, nil
+	}
 	if scaleTagValue == "" {
 		return 0, errors.New("scale tag is not defined")
 	}

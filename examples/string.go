@@ -5,3 +5,7 @@ package examples
 type StructWithString struct {
 	Value string
 }
+
+type StructWithStringLimit struct {
+	Value string `scale:"max=100"`
+}
