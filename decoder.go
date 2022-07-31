@@ -157,9 +157,17 @@ func DecodeLen(d *Decoder, limit uint32) (uint32, int, error) {
 		return v, n, err
 	}
 	if v > limit {
-		return v, n, fmt.Errorf("%w: %d", ErrDecodeTooManyElements, limit)
+		return v, n, fmt.Errorf("%w: (%d > %d)", ErrDecodeTooManyElements, v, limit)
 	}
 	return v, n, err
+}
+
+func DecodeCompact(d *Decoder) (uint, int, error) {
+	v, t, err := DecodeCompact64(d)
+	if uint64(uint(v)) < v {
+		return 0, 0, errors.New("too big for uint, use uint64")
+	}
+	return uint(v), t, err
 }
 
 func DecodeCompact64(d *Decoder) (uint64, int, error) {

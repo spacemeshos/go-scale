@@ -110,12 +110,7 @@ func EncodeSliceOfByteSliceWithLimit(e *Encoder, value [][]byte, limit uint32) (
 		return 0, fmt.Errorf("failed encoding len for a slice of byte slices: %w", err)
 	}
 	for _, byteSlice := range value {
-		n, err := EncodeLen(e, uint32(len(byteSlice)), MaxElements)
-		if err != nil {
-			return 0, fmt.Errorf("failed encoding len for a byte slice: %w", err)
-		}
-		total += n
-		n, err = EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
+		n, err := EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
 		if err != nil {
 			return 0, fmt.Errorf("failed encoding byte slice: %w", err)
 		}
@@ -230,6 +225,10 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 		return encodeOneZero(e, v<<2|0b10)
 	}
 	return encodeOneOne(e, uint64(v))
+}
+
+func EncodeCompact(e *Encoder, v uint) (int, error) {
+	return EncodeCompact64(e, uint64(v))
 }
 
 func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {
