@@ -2,6 +2,7 @@ package tester
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	fuzz "github.com/google/gofuzz"
@@ -19,6 +20,9 @@ func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F) {
 		buf := bytes.NewBuffer(nil)
 		enc := scale.NewEncoder(buf)
 		_, err := H(&object).EncodeScale(enc)
+		if errors.Is(err, scale.ErrEncodeTooManyElements) {
+			return
+		}
 		require.NoError(t, err)
 
 		dec := scale.NewDecoder(buf)
