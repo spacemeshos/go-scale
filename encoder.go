@@ -70,15 +70,7 @@ func EncodeString(e *Encoder, value string) (int, error) {
 }
 
 func EncodeStringWithLimit(e *Encoder, value string, limit uint32) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)), limit)
-	if err != nil {
-		return 0, err
-	}
-	n, err := io.WriteString(e.w, value)
-	if err != nil {
-		return 0, err
-	}
-	return total + n, nil
+	return EncodeByteSliceWithLimit(e, []byte(value), limit)
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
@@ -110,12 +102,7 @@ func EncodeSliceOfByteSliceWithLimit(e *Encoder, value [][]byte, limit uint32) (
 		return 0, fmt.Errorf("failed encoding len for a slice of byte slices: %w", err)
 	}
 	for _, byteSlice := range value {
-		n, err := EncodeLen(e, uint32(len(byteSlice)), MaxElements)
-		if err != nil {
-			return 0, fmt.Errorf("failed encoding len for a byte slice: %w", err)
-		}
-		total += n
-		n, err = EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
+		n, err := EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
 		if err != nil {
 			return 0, fmt.Errorf("failed encoding byte slice: %w", err)
 		}
