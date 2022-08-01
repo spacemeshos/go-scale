@@ -81,22 +81,3 @@ func (t *U64) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	}
 	return total, nil
 }
-
-func (t *U) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeCompact(enc, uint(t.Value)); err != nil {
-		return total, err
-	} else {
-		total += n
-	}
-	return total, nil
-}
-
-func (t *U) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	if field, n, err := scale.DecodeCompact(dec); err != nil {
-		return total, err
-	} else {
-		total += n
-		t.Value = uint(field)
-	}
-	return total, nil
-}

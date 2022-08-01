@@ -40,14 +40,6 @@ func FuzzU64Safety(f *testing.F) {
 	tester.FuzzSafety[U64](f)
 }
 
-func FuzzUConsistency(f *testing.F) {
-	tester.FuzzConsistency[U](f)
-}
-
-func FuzzUSafety(f *testing.F) {
-	tester.FuzzSafety[U](f)
-}
-
 func TestGoldenIntegers(t *testing.T) {
 	golden, err := filepath.Abs("./golden")
 	require.NoError(t, err)

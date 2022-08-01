@@ -17,7 +17,3 @@ type U32 struct {
 type U64 struct {
 	Value uint64
 }
-
-type U struct {
-	Value uint
-}
