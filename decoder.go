@@ -290,18 +290,10 @@ func DecodeSliceOfByteSlice(d *Decoder) ([][]byte, int, error) {
 }
 
 func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, error) {
-	exists, total, err := DecodeBool(d)
-	if !exists {
-		return nil, total, nil
-	}
-	if err != nil {
-		return nil, total, fmt.Errorf("DecodeBool failed: %w", err)
-	}
-	resultLen, n, err := DecodeLen(d, limit)
+	resultLen, total, err := DecodeLen(d, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("DecodeLen failed: %w", err)
 	}
-	total += n
 
 	if resultLen == 0 {
 		return nil, 0, nil
