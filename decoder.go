@@ -292,8 +292,9 @@ func DecodeSliceOfByteSlice(d *Decoder) ([][]byte, int, error) {
 func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, error) {
 	resultLen, total, err := DecodeLen(d, limit)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed decoding len for a slice of byte slices: %w", err)
+		return nil, 0, fmt.Errorf("DecodeLen failed: %w", err)
 	}
+
 	if resultLen == 0 {
 		return nil, 0, nil
 	}
@@ -302,13 +303,33 @@ func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, e
 	for i := uint32(0); i < resultLen; i++ {
 		val, n, err := DecodeByteSlice(d)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed decoding byte slice: %w", err)
+			return nil, 0, fmt.Errorf("DecodeByteSlice failed: %w", err)
 		}
 		result = append(result, val)
 		total += n
 	}
 
 	return result, total, nil
+}
+
+func DecodeStringSlice(d *Decoder) ([]string, int, error) {
+	return DecodeStringSliceWithLimit(d, MaxElements)
+}
+
+func DecodeStringSliceWithLimit(d *Decoder, limit uint32) ([]string, int, error) {
+	sliceOfByteSlices, n, err := DecodeSliceOfByteSliceWithLimit(d, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+	if sliceOfByteSlices == nil {
+		return nil, 0, nil
+	}
+	result := make([]string, 0, len(sliceOfByteSlices))
+	for i := range sliceOfByteSlices {
+		result = append(result, string(sliceOfByteSlices[i]))
+	}
+
+	return result, n, nil
 }
 
 func DecodeStructArray[V any, H DecodablePtr[V]](d *Decoder, value []V) (int, error) {

@@ -21,3 +21,11 @@ func FuzzStructWithStringLimitConsistency(f *testing.F) {
 func FuzzStructWithStringLimitSafety(f *testing.F) {
 	tester.FuzzSafety[StructWithStringLimit](f)
 }
+
+func FuzzStructWithStringSliceAndLimitConsistency(f *testing.F) {
+	tester.FuzzConsistency[StructWithStringSliceAndLimit](f)
+}
+
+func FuzzStructWithStringSliceAndLimitSafety(f *testing.F) {
+	tester.FuzzSafety[StructWithStringSliceAndLimit](f)
+}

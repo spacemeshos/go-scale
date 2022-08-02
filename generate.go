@@ -286,6 +286,12 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 			}
 			return scaleType{Name: "SliceOfByteSlice"}, nil
 		}
+		if t.Elem().Kind() == reflect.String {
+			if maxElements > 0 {
+				return scaleType{Name: "StringSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
+			}
+			return scaleType{Name: "StringSlice"}, nil
+		}
 		if t.Elem().Kind() == reflect.Uint8 {
 			if maxElements > 0 {
 				return scaleType{Name: "ByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
