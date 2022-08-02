@@ -9,3 +9,7 @@ type StructWithString struct {
 type StructWithStringLimit struct {
 	Value string `scale:"max=3"`
 }
+
+type StructWithStringSliceAndLimit struct {
+	Value []string `scale:"max=3"`
+}
