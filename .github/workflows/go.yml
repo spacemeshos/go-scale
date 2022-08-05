@@ -21,9 +21,4 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        run: make test
-
-      - name: Build scalegen
-        run: |
-          cd scalegen
-          go build -v ./...
+        run: go test -v ./...
