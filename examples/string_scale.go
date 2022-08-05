@@ -7,18 +7,22 @@ import (
 )
 
 func (t *StructWithString) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeString(enc, t.Value); err != nil {
-		return total, err
-	} else { // nolint
+	{
+		n, err := scale.EncodeString(enc, t.Value)
+		if err != nil {
+			return total, err
+		}
 		total += n
 	}
 	return total, nil
 }
 
 func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	if field, n, err := scale.DecodeString(dec); err != nil {
-		return total, err
-	} else { // nolint
+	{
+		field, n, err := scale.DecodeString(dec)
+		if err != nil {
+			return total, err
+		}
 		total += n
 		t.Value = field
 	}
@@ -26,18 +30,22 @@ func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error
 }
 
 func (t *StructWithStringLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeStringWithLimit(enc, t.Value, 3); err != nil {
-		return total, err
-	} else { // nolint
+	{
+		n, err := scale.EncodeStringWithLimit(enc, t.Value, 3)
+		if err != nil {
+			return total, err
+		}
 		total += n
 	}
 	return total, nil
 }
 
 func (t *StructWithStringLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	if field, n, err := scale.DecodeStringWithLimit(dec, 3); err != nil {
-		return total, err
-	} else { // nolint
+	{
+		field, n, err := scale.DecodeStringWithLimit(dec, 3)
+		if err != nil {
+			return total, err
+		}
 		total += n
 		t.Value = field
 	}
@@ -45,18 +53,22 @@ func (t *StructWithStringLimit) DecodeScale(dec *scale.Decoder) (total int, err 
 }
 
 func (t *StructWithStringSliceAndLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	if n, err := scale.EncodeStringSliceWithLimit(enc, t.Value, 3); err != nil {
-		return total, err
-	} else {
+	{
+		n, err := scale.EncodeStringSliceWithLimit(enc, t.Value, 3)
+		if err != nil {
+			return total, err
+		}
 		total += n
 	}
 	return total, nil
 }
 
 func (t *StructWithStringSliceAndLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	if field, n, err := scale.DecodeStringSliceWithLimit(dec, 3); err != nil {
-		return total, err
-	} else {
+	{
+		field, n, err := scale.DecodeStringSliceWithLimit(dec, 3)
+		if err != nil {
+			return total, err
+		}
 		total += n
 		t.Value = field
 	}
