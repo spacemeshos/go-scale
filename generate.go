@@ -148,12 +148,6 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 			if private(field) {
 				continue
 			}
-			if isCollection(field.Type) {
-				if builtin(field.Type.Elem()) || sameModule(field.Type.Elem(), typ) {
-					continue
-				}
-				rst[canonicalPath(field.Type.Elem())] = struct{}{}
-			}
 			if builtin(field.Type) {
 				continue
 			}
@@ -199,16 +193,6 @@ func needsImport(typ reflect.Type) bool {
 	case reflect.Ptr:
 		return true
 	case reflect.Slice:
-		return true
-	}
-	return false
-}
-
-func isCollection(typ reflect.Type) bool {
-	switch typ.Kind() {
-	case reflect.Slice:
-		return true
-	case reflect.Array:
 		return true
 	}
 	return false
