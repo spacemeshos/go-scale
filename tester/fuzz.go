@@ -38,7 +38,6 @@ func FuzzSafety[T any, H scale.TypePtr[T]](f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
 		dec := scale.NewDecoder(bytes.NewReader(data))
 		var decoded T
-		_, err := H(&decoded).DecodeScale(dec)
-		require.NoError(t, err)
+		H(&decoded).DecodeScale(dec)
 	})
 }
