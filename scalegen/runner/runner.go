@@ -99,6 +99,7 @@ const scaleSuffix = "_scale.go"
 func ScaleFile(original string) string {
 	ext := filepath.Ext(original)
 	base := strings.TrimRight(original, ext)
+	fmt.Println(original, ext, base)
 	return base + scaleSuffix
 }
 
