@@ -2,9 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build:
@@ -21,14 +21,9 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        run: go test -v ./...
+        run: make test
 
       - name: Build scalegen
         run: |
           cd scalegen
           go build -v ./...
-      
-      - name: Test scalegen
-        run: | 
-          cd scalegen
-          go test -v ./...
