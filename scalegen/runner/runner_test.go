@@ -1,7 +1,7 @@
 package runner
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,7 +18,7 @@ func examplesDir(tb testing.TB) string {
 
 func TestGoldenExamples(t *testing.T) {
 	dir := examplesDir(t)
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	require.NoError(t, err)
 
 	for _, file := range files {
@@ -32,9 +32,9 @@ func TestGoldenExamples(t *testing.T) {
 			require.NoError(t, RunGenerate(in, out, nil))
 			golden := filepath.Join(dir, ScaleFile(file.Name()))
 
-			outdata, err := ioutil.ReadFile(out)
+			outdata, err := os.ReadFile(out)
 			require.NoError(t, err)
-			goldendata, err := ioutil.ReadFile(golden)
+			goldendata, err := os.ReadFile(golden)
 			require.NoError(t, err)
 			require.Equal(t, string(goldendata), string(outdata))
 		})

@@ -7,7 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -75,7 +75,7 @@ func getModule(in string, parts []string) (string, error) {
 	modf := filepath.Join(dir, "go.mod")
 	if f, err := os.Open(modf); err == nil {
 		defer f.Close()
-		data, err := ioutil.ReadAll(f)
+		data, err := io.ReadAll(f)
 		if err != nil {
 			return "", err
 		}
