@@ -148,12 +148,19 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 			if private(field) {
 				continue
 			}
+			if isCollection(field.Type) {
+				if builtin(field.Type.Elem()) || sameModule(field.Type.Elem(), typ) {
+					continue
+				}
+				rst[canonicalPath(field.Type.Elem())] = struct{}{}
+			}
 			if builtin(field.Type) {
 				continue
 			}
 			if needsImport(field.Type) {
 				rst[canonicalPath(field.Type)] = struct{}{}
 			}
+
 		}
 	}
 	return rst
@@ -192,6 +199,16 @@ func needsImport(typ reflect.Type) bool {
 	case reflect.Ptr:
 		return true
 	case reflect.Slice:
+		return true
+	}
+	return false
+}
+
+func isCollection(typ reflect.Type) bool {
+	switch typ.Kind() {
+	case reflect.Slice:
+		return true
+	case reflect.Array:
 		return true
 	}
 	return false
@@ -311,39 +328,54 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 	return scaleType{}, fmt.Errorf("type %v is not supported", t.Kind())
 }
 
+func getScaleTypeFromTag(tag reflect.StructTag) (string, error) {
+	return getScaleTag(tag, "type")
+}
+
 func getMaxElements(tag reflect.StructTag) (uint32, error) {
-	scaleTagValue, exists := tag.Lookup("scale")
-	if !exists || scaleTagValue == "" {
-		return 0, nil
-	}
-	if scaleTagValue == "" {
-		return 0, errors.New("scale tag is not defined")
-	}
-	pairs := strings.Split(scaleTagValue, ",")
-	if len(pairs) == 0 {
-		return 0, errors.New("no max value found in scale tag")
-	}
-	var maxElementsStr string
-	for _, pair := range pairs {
-		pair = strings.TrimSpace(pair)
-		data := strings.Split(pair, "=")
-		if len(data) < 2 {
-			continue
-		}
-		if data[0] != "max" {
-			continue
-		}
-		maxElementsStr = strings.TrimSpace(data[1])
-		break
+	maxElementsStr, err := getScaleTag(tag, "max")
+	if err != nil {
+		return 0, err
 	}
 	if maxElementsStr == "" {
-		return 0, errors.New("no max value found in scale tag")
+		return 0, nil
 	}
 	maxElements, err := strconv.Atoi(maxElementsStr)
 	if err != nil {
 		return 0, fmt.Errorf("failed parsing max value: %w", err)
 	}
 	return uint32(maxElements), nil
+}
+
+func getScaleTag(tag reflect.StructTag, name string) (string, error) {
+	scaleTagValue, exists := tag.Lookup("scale")
+	if !exists || scaleTagValue == "" {
+		return "", nil
+	}
+	if scaleTagValue == "" {
+		return "", errors.New("scale tag is not defined")
+	}
+	pairs := strings.Split(scaleTagValue, ",")
+	if len(pairs) == 0 {
+		return "", errors.New("no max value found in scale tag")
+	}
+	var flagValue string
+	for _, pair := range pairs {
+		pair = strings.TrimSpace(pair)
+		data := strings.Split(pair, "=")
+		if len(data) < 2 {
+			continue
+		}
+		if data[0] != name {
+			continue
+		}
+		flagValue = strings.TrimSpace(data[1])
+		break
+	}
+	if flagValue == "" {
+		return "", nil
+	}
+	return flagValue, nil
 }
 
 func getTemplate(stype scaleType) temp {
@@ -378,7 +410,13 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		if err != nil {
 			return fmt.Errorf("failed getting scale type: %w", err)
 		}
-
+		tagType, err := getScaleTypeFromTag(field.Tag)
+		if err != nil {
+			return fmt.Errorf("get from tag: %w", err)
+		}
+		if tagType != "" {
+			scaleType.Name = tagType
+		}
 		tctx := &typeContext{
 			Name:           field.Name,
 			Type:           field.Type,
@@ -391,7 +429,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		}
 
 		if strings.HasPrefix(scaleType.Name, "StructSlice") {
-			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
+			tctx.TypeInfo = "[" + fullTypeName(gc, tc, field.Type.Elem()) + "]"
 		} else if strings.Contains(scaleType.Name, "Struct") || strings.Contains(scaleType.Name, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
