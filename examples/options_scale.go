@@ -9,12 +9,12 @@ import (
 func (t *Options) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	if n, err := scale.EncodeOption(enc, t.ArrayPtr); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 	}
 	if n, err := scale.EncodeOption(enc, t.SlicePtr); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 	}
 	return total, nil
@@ -23,13 +23,13 @@ func (t *Options) EncodeScale(enc *scale.Encoder) (total int, err error) {
 func (t *Options) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	if field, n, err := scale.DecodeOption[array](dec); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 		t.ArrayPtr = field
 	}
 	if field, n, err := scale.DecodeOption[slice](dec); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 		t.SlicePtr = field
 	}

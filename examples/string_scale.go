@@ -9,7 +9,7 @@ import (
 func (t *StructWithString) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	if n, err := scale.EncodeString(enc, t.Value); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 	}
 	return total, nil
@@ -18,7 +18,7 @@ func (t *StructWithString) EncodeScale(enc *scale.Encoder) (total int, err error
 func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	if field, n, err := scale.DecodeString(dec); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 		t.Value = field
 	}
@@ -28,7 +28,7 @@ func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error
 func (t *StructWithStringLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	if n, err := scale.EncodeStringWithLimit(enc, t.Value, 3); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 	}
 	return total, nil
@@ -37,7 +37,7 @@ func (t *StructWithStringLimit) EncodeScale(enc *scale.Encoder) (total int, err 
 func (t *StructWithStringLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	if field, n, err := scale.DecodeStringWithLimit(dec, 3); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 		t.Value = field
 	}

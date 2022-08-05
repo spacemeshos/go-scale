@@ -9,12 +9,12 @@ import (
 func (t *Ex1) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	if n, err := scale.EncodeOption(enc, t.Option); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 	}
 	if n, err := scale.EncodeBool(enc, t.Bool); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 	}
 	return total, nil
@@ -23,13 +23,13 @@ func (t *Ex1) EncodeScale(enc *scale.Encoder) (total int, err error) {
 func (t *Ex1) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	if field, n, err := scale.DecodeOption[Ex1](dec); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 		t.Option = field
 	}
 	if field, n, err := scale.DecodeBool(dec); err != nil {
 		return total, err
-	} else {
+	} else { // nolint
 		total += n
 		t.Bool = field
 	}
