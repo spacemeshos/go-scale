@@ -40,3 +40,13 @@ func TestGoldenExamples(t *testing.T) {
 		})
 	}
 }
+
+func FuzzScaleFile(f *testing.F) {
+	f.Fuzz(func(t *testing.T, pattern string) {
+		in := pattern + ".go"
+		out := pattern + "_scale.go"
+
+		actual := ScaleFile(in)
+		require.Equal(t, out, actual)
+	})
+}
