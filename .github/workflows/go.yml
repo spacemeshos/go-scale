@@ -7,7 +7,6 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -23,3 +22,13 @@ jobs:
 
       - name: Test
         run: go test -v ./...
+
+      - name: Build scalegen
+        run: |
+          cd scalegen
+          go build -v ./...
+      
+      - name: Test scalegen
+        run: | 
+          cd scalegen
+          go test -v ./...
