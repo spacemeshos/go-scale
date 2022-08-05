@@ -46,14 +46,14 @@ var (
 	}
 	generic = temp{
 		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}{{.ScaleTypeArgs}}); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 		}
 		`,
 		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec{{.ScaleTypeArgs}}); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 			t.{{ .Name }} = field
 		}
@@ -61,14 +61,14 @@ var (
 	}
 	genericTyped = temp{
 		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, {{.EncodeModifier}}(t.{{ .Name }}){{.ScaleTypeArgs}}); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 		}
 		`,
 		decode: `if field, n, err := scale.Decode{{ .ScaleType }}{{ .TypeInfo }}(dec{{.ScaleTypeArgs}}); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 			t.{{ .Name }} = {{.DecodeModifier}}(field)
 		}
@@ -76,28 +76,28 @@ var (
 	}
 	array = temp{
 		encode: `if n, err := scale.Encode{{ .ScaleType }}(enc, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 		}
 		`,
 		decode: `if n, err := scale.Decode{{ .ScaleType }}(dec, t.{{ .Name }}[:]{{.ScaleTypeArgs}}); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 		}
 		`,
 	}
 	object = temp{
 		encode: `if n, err := t.{{ .Name }}.EncodeScale(enc); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 		}
 		`,
 		decode: `if n, err := t.{{ .Name }}.DecodeScale(dec); err != nil {
-			return total, err // nolint
-		} else {
+			return total, err
+		} else { // nolint
 			total += n
 		}
 		`,
