@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	_ "github.com/spacemeshos/go-scale"
+
 	"github.com/spacemeshos/go-scale/scalegen/runner"
 )
 
