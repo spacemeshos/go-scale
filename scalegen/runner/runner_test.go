@@ -26,6 +26,9 @@ func TestGoldenExamples(t *testing.T) {
 		if strings.Contains(file.Name(), scaleSuffix) || strings.Contains(file.Name(), "test.go") {
 			continue
 		}
+		if file.IsDir() {
+			continue
+		}
 		t.Run(file.Name(), func(t *testing.T) {
 			in := filepath.Join(dir, file.Name())
 			out := filepath.Join(t.TempDir(), "scale.go")
