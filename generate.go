@@ -168,7 +168,14 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 			if builtin(field.Type) {
 				continue
 			}
-			if needsImport(field.Type) {
+			// enables DecodeStructSlice[types.Struct]
+			// "types" needs to be imported
+			if field.Type.Kind() == reflect.Slice && (!sameModule(field.Type.Elem(), typ) || !builtin(field.Type.Elem())) {
+				rst[canonicalPath(field.Type.Elem())] = struct{}{}
+			}
+			// enables DecodeOption[types.Struct]
+			// "types" needs to be imported
+			if field.Type.Kind() == reflect.Ptr {
 				rst[canonicalPath(field.Type)] = struct{}{}
 			}
 		}
@@ -408,7 +415,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		}
 
 		if strings.HasPrefix(scaleType.Name, "StructSlice") {
-			tctx.TypeInfo = "[" + field.Type.Elem().Name() + "]"
+			tctx.TypeInfo = "[" + fullTypeName(gc, tc, field.Type.Elem()) + "]"
 		} else if strings.Contains(scaleType.Name, "Struct") || strings.Contains(scaleType.Name, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
