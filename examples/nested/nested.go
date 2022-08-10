@@ -5,3 +5,7 @@ package nested
 type NestedModule struct {
 	Value []byte
 }
+
+type Struct struct {
+	A uint64
+}

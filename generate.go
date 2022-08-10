@@ -159,6 +159,12 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 		typ := reflect.TypeOf(obj)
 		for i := 0; i < typ.NumField(); i++ {
 			field := typ.Field(i)
+			// enables DecodeStructSlice[types.Struct]
+			// "types" needs to be imported
+			if field.Type.Kind() == reflect.Slice && !sameModule(field.Type.Elem(), typ) && !builtin(field.Type.Elem()) {
+				rst[canonicalPath(field.Type.Elem())] = struct{}{}
+				continue
+			}
 			if sameModule(field.Type, typ) {
 				continue
 			}
@@ -167,11 +173,6 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 			}
 			if builtin(field.Type) {
 				continue
-			}
-			// enables DecodeStructSlice[types.Struct]
-			// "types" needs to be imported
-			if field.Type.Kind() == reflect.Slice && (!sameModule(field.Type.Elem(), typ) || !builtin(field.Type.Elem())) {
-				rst[canonicalPath(field.Type.Elem())] = struct{}{}
 			}
 			// enables DecodeOption[types.Struct]
 			// "types" needs to be imported
