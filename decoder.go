@@ -236,7 +236,7 @@ func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
 		return nil, 0, err
 	}
 	if lth == 0 {
-		return nil, total, nil
+		return []byte{}, total, nil
 	}
 	value := make([]byte, lth)
 
@@ -270,7 +270,7 @@ func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint
 		return nil, 0, err
 	}
 	if lth == 0 {
-		return nil, 0, nil
+		return []V{}, 0, nil
 	}
 	value := make([]V, 0, lth)
 

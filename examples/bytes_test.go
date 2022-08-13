@@ -1,6 +1,9 @@
 package examples
 
 import (
+	"bytes"
+	"github.com/spacemeshos/go-scale"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/spacemeshos/go-scale/tester"
@@ -36,4 +39,14 @@ func FuzzSliceOfByteSliceWithLimitConsistency(f *testing.F) {
 
 func FuzzSliceOfByteSliceWithLimitSafety(f *testing.F) {
 	tester.FuzzSafety[SliceOfByteSliceWithLimit](f)
+}
+
+func TestNilByteSlice(t *testing.T) {
+	s := Slice{
+		Value: nil,
+	}
+	buf := bytes.NewBuffer(nil)
+	encoder := scale.NewEncoder(buf)
+	_, err := s.EncodeScale(encoder)
+	require.ErrorIs(t, err, scale.ErrNilSlice)
 }

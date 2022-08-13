@@ -23,6 +23,9 @@ func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F) {
 		if errors.Is(err, scale.ErrEncodeTooManyElements) {
 			return
 		}
+		if errors.Is(err, scale.ErrNilSlice) {
+			return
+		}
 		require.NoError(t, err)
 
 		dec := scale.NewDecoder(buf)
