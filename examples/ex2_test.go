@@ -42,13 +42,3 @@ func TestStructSliceWithLimitDecodeTooManyElements(t *testing.T) {
 	_, err = s.DecodeScale(decoder)
 	require.ErrorIs(t, err, scale.ErrDecodeTooManyElements)
 }
-
-func TestNilStructSlice(t *testing.T) {
-	s := StructSliceWithLimit{
-		Slice: nil,
-	}
-	buf := bytes.NewBuffer(nil)
-	encoder := scale.NewEncoder(buf)
-	_, err := s.EncodeScale(encoder)
-	require.ErrorIs(t, err, scale.ErrNilSlice)
-}

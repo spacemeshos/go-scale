@@ -15,7 +15,6 @@ var (
 var (
 	// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
 	ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
-	ErrNilSlice              = errors.New("slice must be empty but not nil")
 )
 
 const (
@@ -51,9 +50,6 @@ func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeByteSliceWithLimit(e *Encoder, value []byte, limit uint32) (int, error) {
-	if value == nil {
-		return 0, ErrNilSlice
-	}
 	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
@@ -82,9 +78,6 @@ func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, er
 }
 
 func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {
-	if value == nil {
-		return 0, ErrNilSlice
-	}
 	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
