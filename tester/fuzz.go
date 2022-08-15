@@ -32,7 +32,9 @@ func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F) {
 		_, err = H(&decoded).DecodeScale(dec)
 		require.NoError(t, err)
 
-		require.True(t, cmp.Equal(object, decoded, cmpopts.EquateEmpty()))
+		if !cmp.Equal(object, decoded, cmpopts.EquateEmpty()) {
+			t.Errorf("decoded didn't match original: %s", cmp.Diff(object, decoded))
+		}
 	})
 }
 
