@@ -15,7 +15,7 @@ import (
 
 func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
-		fuzzer := fuzz.NewFromGoFuzz(data).NilChance(0)
+		fuzzer := fuzz.NewFromGoFuzz(data)
 		var object T
 		fuzzer.Fuzz(&object)
 
