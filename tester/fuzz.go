@@ -3,6 +3,8 @@ package tester
 import (
 	"bytes"
 	"errors"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"testing"
 
 	fuzz "github.com/google/gofuzz"
@@ -30,7 +32,7 @@ func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F) {
 		_, err = H(&decoded).DecodeScale(dec)
 		require.NoError(t, err)
 
-		require.Equal(t, object, decoded)
+		require.True(t, cmp.Equal(object, decoded, cmpopts.EquateEmpty()))
 	})
 }
 
