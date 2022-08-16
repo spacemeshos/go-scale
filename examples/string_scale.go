@@ -121,3 +121,49 @@ func (t *StructWithStringAliasAndLimit) DecodeScale(dec *scale.Decoder) (total i
 	}
 	return total, nil
 }
+
+func (t *StructWithNestedStringAlias) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	{
+		n, err := scale.EncodeString(enc, string(t.Value))
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func (t *StructWithNestedStringAlias) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	{
+		field, n, err := scale.DecodeString(dec)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		t.Value = nested.StringAlias(field)
+	}
+	return total, nil
+}
+
+func (t *StructWithNestedStringAliasAndLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	{
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 3)
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func (t *StructWithNestedStringAliasAndLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	{
+		field, n, err := scale.DecodeStringWithLimit(dec, 3)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		t.Value = nested.StringAlias(field)
+	}
+	return total, nil
+}

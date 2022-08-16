@@ -264,22 +264,22 @@ type scaleType struct {
 	DecodeModifier string
 }
 
-func getDecodeModifier(t string) string {
-	if !strings.Contains(t, ".") {
-		return t
+func getDecodeModifier(parentType reflect.Type, field reflect.StructField) string {
+	if sameModule(field.Type, parentType) {
+		parts := strings.Split(field.Type.String(), ".")
+		return parts[len(parts)-1]
 	}
-	parts := strings.Split(t, ".")
-	return parts[len(parts)-1]
+	return field.Type.String()
 }
 
-func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
-	decodeModifier := getDecodeModifier(t.String())
+func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType, error) {
+	decodeModifier := getDecodeModifier(parentType, field)
 
-	switch t.Kind() {
+	switch field.Type.Kind() {
 	case reflect.Bool:
 		return scaleType{Name: "Bool"}, nil
 	case reflect.String:
-		maxElements, err := getMaxElements(tag)
+		maxElements, err := getMaxElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
@@ -305,24 +305,24 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 	case reflect.Ptr:
 		return scaleType{Name: "Option"}, nil
 	case reflect.Slice:
-		maxElements, err := getMaxElements(tag)
+		maxElements, err := getMaxElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
 		// [][]byte
-		if t.Elem().Kind() == reflect.Slice && t.Elem().Elem().Kind() == reflect.Uint8 {
+		if field.Type.Elem().Kind() == reflect.Slice && field.Type.Elem().Elem().Kind() == reflect.Uint8 {
 			if maxElements > 0 {
 				return scaleType{Name: "SliceOfByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 			}
 			return scaleType{Name: "SliceOfByteSlice"}, nil
 		}
-		if t.Elem().Kind() == reflect.String {
+		if field.Type.Elem().Kind() == reflect.String {
 			if maxElements > 0 {
 				return scaleType{Name: "StringSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 			}
 			return scaleType{Name: "StringSlice"}, nil
 		}
-		if t.Elem().Kind() == reflect.Uint8 {
+		if field.Type.Elem().Kind() == reflect.Uint8 {
 			if maxElements > 0 {
 				return scaleType{Name: "ByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 			}
@@ -333,12 +333,12 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 		}
 		return scaleType{Name: "StructSlice"}, nil
 	case reflect.Array:
-		if t.Elem().Kind() == reflect.Uint8 {
+		if field.Type.Elem().Kind() == reflect.Uint8 {
 			return scaleType{Name: "ByteArray"}, nil
 		}
 		return scaleType{Name: "StructArray"}, nil
 	}
-	return scaleType{}, fmt.Errorf("type %v is not supported", t.Kind())
+	return scaleType{}, fmt.Errorf("type %v is not supported", field.Type.Kind())
 }
 
 func getMaxElements(tag reflect.StructTag) (uint32, error) {
@@ -404,7 +404,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 			continue
 		}
 
-		scaleType, err := getScaleType(field.Type, field.Tag)
+		scaleType, err := getScaleType(typ, field)
 		if err != nil {
 			return fmt.Errorf("failed getting scale type: %w", err)
 		}

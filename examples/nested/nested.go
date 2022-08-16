@@ -9,3 +9,5 @@ type NestedModule struct {
 type Struct struct {
 	A uint64
 }
+
+type StringAlias string
