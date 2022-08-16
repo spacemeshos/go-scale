@@ -9,7 +9,7 @@ import (
 
 func (t *StructWithString) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeString(enc, t.Value)
+		n, err := scale.EncodeString(enc, string(t.Value))
 		if err != nil {
 			return total, err
 		}
@@ -25,14 +25,14 @@ func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error
 			return total, err
 		}
 		total += n
-		t.Value = field
+		t.Value = string(field)
 	}
 	return total, nil
 }
 
 func (t *StructWithStringLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeStringWithLimit(enc, t.Value, 3)
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 3)
 		if err != nil {
 			return total, err
 		}
@@ -48,7 +48,7 @@ func (t *StructWithStringLimit) DecodeScale(dec *scale.Decoder) (total int, err 
 			return total, err
 		}
 		total += n
-		t.Value = field
+		t.Value = string(field)
 	}
 	return total, nil
 }
@@ -72,6 +72,52 @@ func (t *StructWithStringSliceAndLimit) DecodeScale(dec *scale.Decoder) (total i
 		}
 		total += n
 		t.Value = field
+	}
+	return total, nil
+}
+
+func (t *StructWithStringAlias) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	{
+		n, err := scale.EncodeString(enc, string(t.Value))
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func (t *StructWithStringAlias) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	{
+		field, n, err := scale.DecodeString(dec)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		t.Value = StringAlias(field)
+	}
+	return total, nil
+}
+
+func (t *StructWithStringAliasAndLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	{
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 3)
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func (t *StructWithStringAliasAndLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	{
+		field, n, err := scale.DecodeStringWithLimit(dec, 3)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		t.Value = StringAlias(field)
 	}
 	return total, nil
 }

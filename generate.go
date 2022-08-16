@@ -284,9 +284,14 @@ func getScaleType(t reflect.Type, tag reflect.StructTag) (scaleType, error) {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
 		if maxElements > 0 {
-			return scaleType{Name: "StringWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
+			return scaleType{
+				Name:           "StringWithLimit",
+				Args:           fmt.Sprintf(", %d", maxElements),
+				EncodeModifier: "string",
+				DecodeModifier: decodeModifier,
+			}, nil
 		}
-		return scaleType{Name: "String"}, nil
+		return scaleType{Name: "String", EncodeModifier: "string", DecodeModifier: decodeModifier}, nil
 	case reflect.Uint8:
 		return scaleType{Name: "Compact8", EncodeModifier: "uint8", DecodeModifier: decodeModifier}, nil
 	case reflect.Uint16:
