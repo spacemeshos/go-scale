@@ -174,14 +174,25 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 			if builtin(field.Type) {
 				continue
 			}
-			// enables DecodeOption[types.Struct]
-			// "types" needs to be imported
-			if field.Type.Kind() != reflect.Struct {
+			if !skipPackageImport(field.Type) {
 				rst[canonicalPath(field.Type)] = struct{}{}
 			}
 		}
 	}
 	return rst
+}
+
+func skipPackageImport(typ reflect.Type) bool {
+	if typ.Kind() == reflect.Struct {
+		return true
+	}
+	if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
+		return true
+	}
+	if typ.Kind() == reflect.Array && typ.Elem().Kind() == reflect.Uint8 {
+		return true
+	}
+	return false
 }
 
 func canonicalPath(typ reflect.Type) string {
