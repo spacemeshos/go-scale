@@ -1,7 +1,5 @@
 package examples
 
-import "github.com/spacemeshos/go-scale/examples/nested"
-
 //go:generate scalegen
 
 type StructWithString struct {
@@ -24,12 +22,4 @@ type StructWithStringAlias struct {
 
 type StructWithStringAliasAndLimit struct {
 	Value StringAlias `scale:"max=3"`
-}
-
-type StructWithNestedStringAlias struct {
-	Value nested.StringAlias
-}
-
-type StructWithNestedStringAliasAndLimit struct {
-	Value nested.StringAlias `scale:"max=3"`
 }
