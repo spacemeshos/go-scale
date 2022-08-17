@@ -5,6 +5,7 @@ package examples
 
 import (
 	"github.com/spacemeshos/go-scale"
+	"github.com/spacemeshos/go-scale/examples/nested"
 )
 
 func (t *StructWithString) EncodeScale(enc *scale.Encoder) (total int, err error) {

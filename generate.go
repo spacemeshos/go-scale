@@ -176,7 +176,7 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 			}
 			// enables DecodeOption[types.Struct]
 			// "types" needs to be imported
-			if field.Type.Kind() == reflect.Ptr {
+			if field.Type.Kind() != reflect.Struct {
 				rst[canonicalPath(field.Type)] = struct{}{}
 			}
 		}
@@ -210,16 +210,6 @@ func builtin(typ reflect.Type) bool {
 		return typ.Elem().PkgPath() == ""
 	}
 	return typ.PkgPath() == ""
-}
-
-func needsImport(typ reflect.Type) bool {
-	switch typ.Kind() {
-	case reflect.Ptr:
-		return true
-	case reflect.Slice:
-		return true
-	}
-	return false
 }
 
 func generateType(w io.Writer, gc *genContext, obj interface{}) error {
