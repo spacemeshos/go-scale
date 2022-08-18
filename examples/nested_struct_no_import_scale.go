@@ -7,7 +7,7 @@ import (
 	"github.com/spacemeshos/go-scale"
 )
 
-func (t *NestedStructNoImport) EncodeScale(enc *scale.Encoder) (total int, err error) {
+func (t *NestedStruct) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
 		n, err := t.Value.EncodeScale(enc)
 		if err != nil {
@@ -18,7 +18,7 @@ func (t *NestedStructNoImport) EncodeScale(enc *scale.Encoder) (total int, err e
 	return total, nil
 }
 
-func (t *NestedStructNoImport) DecodeScale(dec *scale.Decoder) (total int, err error) {
+func (t *NestedStruct) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
 		n, err := t.Value.DecodeScale(dec)
 		if err != nil {

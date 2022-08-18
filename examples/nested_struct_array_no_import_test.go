@@ -6,8 +6,6 @@ import (
 	"github.com/spacemeshos/go-scale/tester"
 )
 
-//go:generate scalegen
-
 func FuzzNestedStructArrayConsistency(f *testing.F) {
 	tester.FuzzConsistency[NestedStructArray](f)
 }

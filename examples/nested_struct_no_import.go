@@ -4,6 +4,6 @@ import "github.com/spacemeshos/go-scale/examples/nested"
 
 //go:generate scalegen
 
-type NestedStructNoImport struct {
+type NestedStruct struct {
 	Value nested.Struct
 }
