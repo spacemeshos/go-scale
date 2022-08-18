@@ -236,12 +236,14 @@ func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
 		return nil, 0, err
 	}
 	value := make([]byte, lth)
-
-	n, err := DecodeByteArray(d, value)
-	if err != nil {
-		return value, 0, err
+	if lth > 0 {
+		n, err := DecodeByteArray(d, value)
+		if err != nil {
+			return value, 0, err
+		}
+		total += n
 	}
-	return value, total + n, nil
+	return value, total, nil
 }
 
 func DecodeByteArray(d *Decoder, value []byte) (int, error) {
@@ -289,9 +291,6 @@ func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, e
 		return nil, 0, fmt.Errorf("DecodeLen failed: %w", err)
 	}
 
-	if resultLen == 0 {
-		return nil, 0, nil
-	}
 	result := make([][]byte, 0, resultLen)
 
 	for i := uint32(0); i < resultLen; i++ {
