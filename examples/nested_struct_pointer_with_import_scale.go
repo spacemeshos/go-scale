@@ -8,9 +8,9 @@ import (
 	"github.com/spacemeshos/go-scale/examples/nested"
 )
 
-func (t *Imported) EncodeScale(enc *scale.Encoder) (total int, err error) {
+func (t *NestedStructPointer) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeStructSlice(enc, t.B)
+		n, err := scale.EncodeOption(enc, t.Value)
 		if err != nil {
 			return total, err
 		}
@@ -19,14 +19,14 @@ func (t *Imported) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	return total, nil
 }
 
-func (t *Imported) DecodeScale(dec *scale.Decoder) (total int, err error) {
+func (t *NestedStructPointer) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeStructSlice[nested.Struct](dec)
+		field, n, err := scale.DecodeOption[nested.Struct](dec)
 		if err != nil {
 			return total, err
 		}
 		total += n
-		t.B = field
+		t.Value = field
 	}
 	return total, nil
 }

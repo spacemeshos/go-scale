@@ -183,20 +183,14 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 }
 
 func skipPackageImport(typ reflect.Type) bool {
-	if typ.Kind() == reflect.Struct {
-		return true
-	}
-	if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
-		return true
-	}
-	if typ.Kind() == reflect.Array && typ.Elem().Kind() == reflect.Uint8 {
+	if typ.Kind() == reflect.Struct || typ.Kind() == reflect.Slice || typ.Kind() == reflect.Array {
 		return true
 	}
 	return false
 }
 
 func canonicalPath(typ reflect.Type) string {
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Ptr || typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice {
 		return typ.Elem().PkgPath()
 	}
 	return typ.PkgPath()
@@ -217,7 +211,7 @@ func sameModule(a, b reflect.Type) bool {
 }
 
 func builtin(typ reflect.Type) bool {
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Ptr || typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice {
 		return typ.Elem().PkgPath() == ""
 	}
 	return typ.PkgPath() == ""
