@@ -29,3 +29,19 @@ func FuzzStructWithStringSliceAndLimitConsistency(f *testing.F) {
 func FuzzStructWithStringSliceAndLimitSafety(f *testing.F) {
 	tester.FuzzSafety[StructWithStringSliceAndLimit](f)
 }
+
+func FuzzStructWithStringAliasConsistency(f *testing.F) {
+	tester.FuzzConsistency[StructWithStringAlias](f)
+}
+
+func FuzzStructWithStringAliasSafety(f *testing.F) {
+	tester.FuzzSafety[StructWithStringAlias](f)
+}
+
+func FuzzStructWithStringAliasAndLimitConsistency(f *testing.F) {
+	tester.FuzzConsistency[StructWithStringAliasAndLimit](f)
+}
+
+func FuzzStructWithStringAliasAndLimitSafety(f *testing.F) {
+	tester.FuzzSafety[StructWithStringAliasAndLimit](f)
+}
