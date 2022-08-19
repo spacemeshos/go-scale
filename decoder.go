@@ -294,7 +294,9 @@ func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, e
 	if err != nil {
 		return nil, 0, fmt.Errorf("DecodeLen failed: %w", err)
 	}
-
+	if resultLen == 0 {
+		return nil, 0, nil
+	}
 	result := make([][]byte, 0, resultLen)
 
 	for i := uint32(0); i < resultLen; i++ {
