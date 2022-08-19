@@ -235,15 +235,15 @@ func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	value := make([]byte, lth)
-	if lth > 0 {
-		n, err := DecodeByteArray(d, value)
-		if err != nil {
-			return value, 0, err
-		}
-		total += n
+	if lth == 0 {
+		return nil, total, nil
 	}
-	return value, total, nil
+	value := make([]byte, lth)
+	n, err := DecodeByteArray(d, value)
+	if err != nil {
+		return value, 0, err
+	}
+	return value, total + n, nil
 }
 
 func DecodeByteArray(d *Decoder, value []byte) (int, error) {
@@ -268,6 +268,10 @@ func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint
 	if err != nil {
 		return nil, 0, err
 	}
+	if lth == 0 {
+		return nil, 0, nil
+	}
+
 	value := make([]V, 0, lth)
 
 	for i := uint32(0); i < lth; i++ {
