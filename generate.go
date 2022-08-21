@@ -159,12 +159,6 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 		typ := reflect.TypeOf(obj)
 		for i := 0; i < typ.NumField(); i++ {
 			field := typ.Field(i)
-			// enables DecodeStructSlice[types.Struct]
-			// "types" needs to be imported
-			if field.Type.Kind() == reflect.Slice && !sameModule(field.Type.Elem(), typ) && !builtin(field.Type.Elem()) {
-				rst[canonicalPath(field.Type.Elem())] = struct{}{}
-				continue
-			}
 			if sameModule(field.Type, typ) {
 				continue
 			}
@@ -183,7 +177,22 @@ func generateImports(objs ...interface{}) map[string]struct{} {
 }
 
 func skipPackageImport(typ reflect.Type) bool {
-	if typ.Kind() == reflect.Struct || typ.Kind() == reflect.Slice || typ.Kind() == reflect.Array {
+	if typ.Kind() == reflect.Struct {
+		return true
+	}
+	if typ.Kind() == reflect.Slice {
+		if typ.Elem().Kind() == reflect.Slice && typ.Elem().Elem().Kind() == reflect.Uint8 {
+			return true
+		}
+		if typ.Elem().Kind() == reflect.String {
+			return true
+		}
+		if typ.Elem().Kind() == reflect.Uint8 {
+			return true
+		}
+		return false
+	}
+	if typ.Kind() == reflect.Array {
 		return true
 	}
 	return false
@@ -201,10 +210,10 @@ func private(field reflect.StructField) bool {
 }
 
 func sameModule(a, b reflect.Type) bool {
-	if b.Kind() == reflect.Ptr {
+	if b.Kind() == reflect.Ptr || b.Kind() == reflect.Slice || b.Kind() == reflect.Array {
 		b = b.Elem()
 	}
-	if a.Kind() == reflect.Ptr {
+	if a.Kind() == reflect.Ptr || a.Kind() == reflect.Slice || a.Kind() == reflect.Array {
 		a = a.Elem()
 	}
 	return a.PkgPath() == b.PkgPath()
