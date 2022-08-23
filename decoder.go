@@ -39,7 +39,7 @@ func DecodeCompact8(d *Decoder) (uint8, int, error) {
 		value uint8
 		total int
 	)
-	n, err := d.r.Read(d.scratch[:1])
+	n, err := io.ReadFull(d.r, d.scratch[:1])
 	if err != nil {
 		return value, 0, err
 	}
@@ -48,7 +48,7 @@ func DecodeCompact8(d *Decoder) (uint8, int, error) {
 	case 0:
 		value = uint8(d.scratch[0]) >> 2
 	case 1:
-		n, err := d.r.Read(d.scratch[1:2])
+		n, err := io.ReadFull(d.r, d.scratch[1:2])
 		if err != nil {
 			return value, 0, err
 		}
@@ -69,7 +69,7 @@ func DecodeCompact16(d *Decoder) (uint16, int, error) {
 		value uint16
 		total int
 	)
-	n, err := d.r.Read(d.scratch[:1])
+	n, err := io.ReadFull(d.r, d.scratch[:1])
 	if err != nil {
 		return value, 0, err
 	}
@@ -78,14 +78,14 @@ func DecodeCompact16(d *Decoder) (uint16, int, error) {
 	case 0:
 		value = uint16(d.scratch[0]) >> 2
 	case 1:
-		n, err := d.r.Read(d.scratch[1:2])
+		n, err := io.ReadFull(d.r, d.scratch[1:2])
 		if err != nil {
 			return value, 0, err
 		}
 		total += n
 		value = (uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2
 	case 2:
-		n, err := d.r.Read(d.scratch[1:4])
+		n, err := io.ReadFull(d.r, d.scratch[1:4])
 		if err != nil {
 			return value, 0, err
 		}
@@ -109,7 +109,7 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 		value uint32
 		total int
 	)
-	n, err := d.r.Read(d.scratch[:1])
+	n, err := io.ReadFull(d.r, d.scratch[:1])
 	if err != nil {
 		return value, 0, err
 	}
@@ -118,14 +118,14 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 	case 0:
 		value = uint32(d.scratch[0]) >> 2
 	case 1:
-		n, err := d.r.Read(d.scratch[1:2])
+		n, err := io.ReadFull(d.r, d.scratch[1:2])
 		if err != nil {
 			return value, 0, err
 		}
 		total += n
 		value = (uint32(d.scratch[0]) | uint32(d.scratch[1])<<8) >> 2
 	case 2:
-		n, err := d.r.Read(d.scratch[1:4])
+		n, err := io.ReadFull(d.r, d.scratch[1:4])
 		if err != nil {
 			return value, 0, err
 		}
@@ -139,7 +139,7 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 		if needed > 4 {
 			return value, 0, fmt.Errorf("invalid compact32 needs %d bytes", needed)
 		}
-		_, err := d.r.Read(d.scratch[:needed])
+		_, err := io.ReadFull(d.r, d.scratch[:needed])
 		if err != nil {
 			return value, 0, err
 		}
@@ -167,7 +167,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 		value uint64
 		total int
 	)
-	n, err := d.r.Read(d.scratch[:1])
+	n, err := io.ReadFull(d.r, d.scratch[:1])
 	if err != nil {
 		return value, 0, fmt.Errorf("read compact header: %w", err)
 	}
@@ -176,14 +176,14 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 	case 0:
 		value = uint64(d.scratch[0]) >> 2
 	case 1:
-		n, err := d.r.Read(d.scratch[1:2])
+		n, err := io.ReadFull(d.r, d.scratch[1:2])
 		if err != nil {
 			return 0, 0, err
 		}
 		total += n
 		value = (uint64(d.scratch[0]) | uint64(d.scratch[1])<<8) >> 2
 	case 2:
-		n, err := d.r.Read(d.scratch[1:4])
+		n, err := io.ReadFull(d.r, d.scratch[1:4])
 		if err != nil {
 			return 0, 0, err
 		}
@@ -197,7 +197,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 		if needed > 8 {
 			return value, 0, fmt.Errorf("invalid compact64 needs %d bytes", needed)
 		}
-		n, err := d.r.Read(d.scratch[:needed])
+		n, err := io.ReadFull(d.r, d.scratch[:needed])
 		if err != nil {
 			return 0, 0, err
 		}
@@ -210,7 +210,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 }
 
 func DecodeBool(d *Decoder) (bool, int, error) {
-	n, err := d.r.Read(d.scratch[:1])
+	n, err := io.ReadFull(d.r, d.scratch[:1])
 	if err != nil {
 		return false, 0, err
 	}
@@ -247,7 +247,7 @@ func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
 }
 
 func DecodeByteArray(d *Decoder, value []byte) (int, error) {
-	return d.r.Read(value)
+	return io.ReadFull(d.r, value)
 }
 
 func DecodeString(d *Decoder) (string, int, error) {
