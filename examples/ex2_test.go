@@ -34,7 +34,7 @@ func TestStructSliceWithLimitEncodeTooManyElements(t *testing.T) {
 }
 
 func TestStructSliceWithLimitDecodeTooManyElements(t *testing.T) {
-	var structSliceWith3ElementsHexStr = "0c04080c"
+	structSliceWith3ElementsHexStr := "0c04080c"
 	buf, err := hex.DecodeString(structSliceWith3ElementsHexStr)
 	require.NoError(t, err)
 	decoder := scale.NewDecoder(bytes.NewReader(buf))

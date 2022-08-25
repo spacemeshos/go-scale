@@ -7,10 +7,8 @@ import (
 	"math"
 )
 
-var (
-	// ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
-	ErrDecodeTooManyElements = errors.New("too many elements to decode in collection with scale limit set")
-)
+// ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
+var ErrDecodeTooManyElements = errors.New("too many elements to decode in collection with scale limit set")
 
 type Decodable interface {
 	DecodeScale(*Decoder) (int, error)

@@ -1,8 +1,6 @@
-SCALE
-===
+# SCALE
 
-Types
----
+## Types
 
 golang      | notes
 ------------|-------------------------------------------------------------------
@@ -20,15 +18,15 @@ uint32      | compact u64
 []Object    | slice with objects. prefixed with compact u32
 
 Not implemented:
+
 - pointers to arrays and slices
 - slices with pointers
 - enumerations
 - fixed width integers
 
-Code generation
----
+## Code generation
 
-```
+```bash
 go install ./scalegen
 ```
 

@@ -8,14 +8,10 @@ import (
 	"math/bits"
 )
 
-var (
-	MaxElements uint32 = 1 << 20
-)
+var MaxElements uint32 = 1 << 20
 
-var (
-	// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
-	ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
-)
+// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
+var ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
 
 const (
 	// 0b00 | value
