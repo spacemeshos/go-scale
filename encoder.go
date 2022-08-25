@@ -206,7 +206,7 @@ func EncodeCompact16(e *Encoder, v uint16) (int, error) {
 	} else if v <= zeroone {
 		return encodeZeroOne(e, v<<2|0b01)
 	}
-	return encodeOneZero(e, uint32(v)<<2|0b01)
+	return encodeOneZero(e, uint32(v)<<2|0b10)
 }
 
 func EncodeCompact32(e *Encoder, v uint32) (int, error) {
