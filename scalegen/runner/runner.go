@@ -108,7 +108,7 @@ func ScaleFile(original string) string {
 func cleanupScaleFile(file string) error {
 	fIn, err := os.Open(file)
 	if err != nil {
-		return fmt.Errorf("failed to open file %s: %w", file, err)
+		return fmt.Errorf("failed to open file '%s': %w", file, err)
 	}
 	defer fIn.Close()
 
@@ -116,7 +116,7 @@ func cleanupScaleFile(file string) error {
 
 	parsed, err := parser.ParseFile(fset, file, fIn, parser.AllErrors)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed parsing file '%s': %w", file, err)
 	}
 
 	// for every method in a scale file leave the last ("return ...") statement only
@@ -131,13 +131,13 @@ func cleanupScaleFile(file string) error {
 	// write modified syntax tree back to the file
 	fOut, err := os.Create(file)
 	if err != nil {
-		return fmt.Errorf("failed to truncate file %s: %w", file, err)
+		return fmt.Errorf("failed to truncate file '%s': %w", file, err)
 	}
 	defer fOut.Close()
 
 	err = printer.Fprint(fOut, fset, parsed)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed writing changes back to file '%s': %w", file, err)
 	}
 
 	return nil
