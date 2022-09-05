@@ -108,6 +108,9 @@ func ScaleFile(original string) string {
 func cleanupScaleFile(file string) error {
 	fIn, err := os.Open(file)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
 		return fmt.Errorf("failed to open file '%s': %w", file, err)
 	}
 	defer fIn.Close()
