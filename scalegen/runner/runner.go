@@ -131,6 +131,9 @@ func cleanupScaleFile(file string) error {
 		return true
 	})
 
+	parsed.Imports = filterImports(parsed.Imports)
+	parsed.Decls = filterDecls(parsed.Decls)
+
 	// write modified syntax tree back to the file
 	fOut, err := os.Create(file)
 	if err != nil {
@@ -144,6 +147,47 @@ func cleanupScaleFile(file string) error {
 	}
 
 	return nil
+}
+
+const goScaleImport = `"github.com/spacemeshos/go-scale"`
+
+func filterImports(imports []*ast.ImportSpec) []*ast.ImportSpec {
+
+	newImports := imports[:0]
+	for _, imp := range imports {
+		if imp.Path.Value != goScaleImport {
+			continue
+		}
+		newImports = append(newImports, imp)
+	}
+
+	return newImports
+}
+
+func filterDecls(decls []ast.Decl) []ast.Decl {
+	for _, decl := range decls {
+		switch declType := decl.(type) {
+		case *ast.GenDecl:
+			if len(declType.Specs) == 0 {
+				continue
+			}
+			newSpecs := declType.Specs[:0]
+			for _, spec := range declType.Specs {
+				switch specType := spec.(type) {
+				case *ast.ImportSpec:
+					if specType.Path.Value != goScaleImport {
+						continue
+					}
+					newSpecs = append(newSpecs, spec)
+				default:
+					newSpecs = append(newSpecs, spec)
+				}
+			}
+			declType.Specs = newSpecs
+		}
+	}
+
+	return decls
 }
 
 func RunGenerate(in, out string, types []string) error {
