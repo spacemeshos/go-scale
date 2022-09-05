@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"html/template"
 	"io"
@@ -102,6 +103,46 @@ func ScaleFile(original string) string {
 	return base + scaleSuffix
 }
 
+// cleanupScaleFile removes all function bodies in provided file leaving the last
+// (usually "return ...") statement only.
+func cleanupScaleFile(file string) error {
+	fIn, err := os.Open(file)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %w", file, err)
+	}
+	defer fIn.Close()
+
+	fset := token.NewFileSet()
+
+	parsed, err := parser.ParseFile(fset, file, fIn, parser.AllErrors)
+	if err != nil {
+		return err
+	}
+
+	// for every method in a scale file leave the last ("return ...") statement only
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		switch typ := n.(type) {
+		case *ast.FuncDecl:
+			typ.Body.List = []ast.Stmt{typ.Body.List[len(typ.Body.List)-1]}
+		}
+		return true
+	})
+
+	// write modified syntax tree back to the file
+	fOut, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("failed to truncate file %s: %w", file, err)
+	}
+	defer fOut.Close()
+
+	err = printer.Fprint(fOut, fset, parsed)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func RunGenerate(in, out string, types []string) error {
 	f, err := os.Open(in)
 	if err != nil {
@@ -130,6 +171,12 @@ func RunGenerate(in, out string, types []string) error {
 	list := []string{}
 	for _, obj := range types {
 		list = append(list, fmt.Sprintf("%v.%v{}", pkg, obj))
+	}
+
+	// replace all scale methods with empty ones to be sure it has no compile errors after receiver type changed
+	err = cleanupScaleFile(out)
+	if err != nil {
+		return err
 	}
 
 	ctx := context{
