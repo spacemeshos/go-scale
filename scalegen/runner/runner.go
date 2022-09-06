@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"html/template"
 	"io"
@@ -102,6 +103,93 @@ func ScaleFile(original string) string {
 	return base + scaleSuffix
 }
 
+// cleanupScaleFile removes all function bodies in provided file leaving the last
+// (usually "return ...") statement only.
+func cleanupScaleFile(file string) error {
+	fIn, err := os.Open(file)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("failed to open file '%s': %w", file, err)
+	}
+	defer fIn.Close()
+
+	fset := token.NewFileSet()
+
+	parsed, err := parser.ParseFile(fset, file, fIn, parser.AllErrors)
+	if err != nil {
+		return fmt.Errorf("failed parsing file '%s': %w", file, err)
+	}
+
+	// for every method in a scale file leave the last ("return ...") statement only
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		switch typ := n.(type) {
+		case *ast.FuncDecl:
+			typ.Body.List = []ast.Stmt{typ.Body.List[len(typ.Body.List)-1]}
+		}
+		return true
+	})
+
+	parsed.Imports = filterImports(parsed.Imports)
+	parsed.Decls = filterDecls(parsed.Decls)
+
+	// write modified syntax tree back to the file
+	fOut, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("failed to truncate file '%s': %w", file, err)
+	}
+	defer fOut.Close()
+
+	err = printer.Fprint(fOut, fset, parsed)
+	if err != nil {
+		return fmt.Errorf("failed writing changes back to file '%s': %w", file, err)
+	}
+
+	return nil
+}
+
+const goScaleImport = `"github.com/spacemeshos/go-scale"`
+
+func filterImports(imports []*ast.ImportSpec) []*ast.ImportSpec {
+
+	newImports := imports[:0]
+	for _, imp := range imports {
+		if imp.Path.Value != goScaleImport {
+			continue
+		}
+		newImports = append(newImports, imp)
+	}
+
+	return newImports
+}
+
+func filterDecls(decls []ast.Decl) []ast.Decl {
+	for _, decl := range decls {
+		switch declType := decl.(type) {
+		case *ast.GenDecl:
+			if len(declType.Specs) == 0 {
+				continue
+			}
+			newSpecs := declType.Specs[:0]
+			for _, spec := range declType.Specs {
+				switch specType := spec.(type) {
+				case *ast.ImportSpec:
+					if specType.Path.Value != goScaleImport {
+						continue
+					}
+					newSpecs = append(newSpecs, spec)
+				default:
+					newSpecs = append(newSpecs, spec)
+				}
+			}
+			declType.Specs = newSpecs
+		}
+	}
+
+	return decls
+}
+
 func RunGenerate(in, out string, types []string) error {
 	f, err := os.Open(in)
 	if err != nil {
@@ -130,6 +218,12 @@ func RunGenerate(in, out string, types []string) error {
 	list := []string{}
 	for _, obj := range types {
 		list = append(list, fmt.Sprintf("%v.%v{}", pkg, obj))
+	}
+
+	// replace all scale methods with empty ones to be sure it has no compile errors after receiver type changed
+	err = cleanupScaleFile(out)
+	if err != nil {
+		return err
 	}
 
 	ctx := context{

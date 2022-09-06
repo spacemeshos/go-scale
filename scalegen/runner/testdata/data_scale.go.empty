@@ -1,0 +1,15 @@
+package testdata
+
+import (
+	"github.com/spacemeshos/go-scale"
+)
+
+func (t *Data) EncodeScale(enc *scale.Encoder) (total int, err error) {
+
+	return total, nil
+}
+
+func (t *Data) DecodeScale(dec *scale.Decoder) (total int, err error) {
+
+	return total, nil
+}

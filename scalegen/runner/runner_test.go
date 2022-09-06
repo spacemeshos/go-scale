@@ -1,6 +1,13 @@
 package runner
 
 import (
+	"errors"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,6 +49,136 @@ func TestGoldenExamples(t *testing.T) {
 			require.Equal(t, string(goldendata), string(outdata))
 		})
 	}
+}
+
+func testDataDir(tb testing.TB) string {
+	tb.Helper()
+	rel, err := filepath.Abs("./testdata")
+	require.NoError(tb, err)
+	return rel
+}
+
+func TestCleanupScaleFile(t *testing.T) {
+	dir := testDataDir(t)
+	files, err := os.ReadDir(dir)
+	require.NoError(t, err)
+
+	for _, file := range files {
+		file := file
+		if file.IsDir() {
+			continue
+		}
+		if strings.Contains(file.Name(), scaleSuffix) {
+			continue
+		}
+		t.Run(file.Name(), func(t *testing.T) {
+			scaleFile := filepath.Join(dir, ScaleFile(file.Name()))
+			scaleEmptyFile := scaleFile + ".empty"
+
+			scaleFileData, err := os.ReadFile(scaleFile)
+			require.NoError(t, err)
+			scaleEmptyFileData, err := os.ReadFile(scaleEmptyFile)
+			require.NoError(t, err)
+
+			scaleFileCopy := scaleFile + ".copy"
+			require.NoError(t, err)
+			err = ioutil.WriteFile(scaleFileCopy, scaleFileData, 0644)
+			defer os.Remove(scaleFileCopy)
+
+			err = cleanupScaleFile(scaleFileCopy)
+			require.NoError(t, err)
+
+			scaleFileCopyData, err := os.ReadFile(scaleFileCopy)
+			require.NoError(t, err)
+
+			require.Equal(t, string(scaleFileCopyData), string(scaleEmptyFileData))
+		})
+	}
+}
+
+func TestScaleFileNoErrorOnGenerateWhenFieldRemoved(t *testing.T) {
+	dir := testDataDir(t)
+	files, err := os.ReadDir(dir)
+	require.NoError(t, err)
+
+	for _, file := range files {
+		file := file
+		if file.IsDir() {
+			continue
+		}
+		if strings.Contains(file.Name(), scaleSuffix) {
+			continue
+		}
+		t.Run(file.Name(), func(t *testing.T) {
+			typeFile := filepath.Join(dir, file.Name())
+			scaleFile := filepath.Join(dir, ScaleFile(file.Name()))
+
+			typeFileData, err := os.ReadFile(typeFile)
+			require.NoError(t, err)
+			defer restoreFile(typeFile, typeFileData)
+
+			scaleFileData, err := os.ReadFile(scaleFile)
+			require.NoError(t, err)
+			defer restoreFile(scaleFile, scaleFileData)
+
+			err = removeOneFieldInEveryStructType(typeFile)
+			require.NoError(t, err)
+
+			require.NoError(t, RunGenerate(typeFile, scaleFile, nil))
+		})
+	}
+}
+
+func restoreFile(file string, body []byte) error {
+	return ioutil.WriteFile(file, body, 0644)
+}
+
+func removeOneFieldInEveryStructType(file string) error {
+	fIn, err := os.Open(file)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("failed to open file '%s': %w", file, err)
+	}
+	defer fIn.Close()
+
+	fset := token.NewFileSet()
+
+	parsed, err := parser.ParseFile(fset, file, fIn, parser.AllErrors)
+	if err != nil {
+		return fmt.Errorf("failed parsing file '%s': %w", file, err)
+	}
+
+	// remove the first field in every struct type
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		switch typ := n.(type) {
+		case *ast.TypeSpec:
+			structType, ok := typ.Type.(*ast.StructType)
+			if !ok {
+				return true
+			}
+			if len(structType.Fields.List) < 2 {
+				return true
+			}
+			structType.Fields.List = structType.Fields.List[1:]
+		}
+		return true
+	})
+
+	// write modified syntax tree back to the file
+	fOut, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("failed to truncate file '%s': %w", file, err)
+	}
+	defer fOut.Close()
+
+	err = printer.Fprint(fOut, fset, parsed)
+	if err != nil {
+		return fmt.Errorf("failed writing changes back to file '%s': %w", file, err)
+	}
+
+	return nil
 }
 
 func FuzzScaleFile(f *testing.F) {
