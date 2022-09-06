@@ -164,11 +164,12 @@ func cleanupScaleFile(dataFilePath, scaleFilePath string) error {
 	return nil
 }
 
-func getReceiver(recv *ast.FieldList) string {
-	if recv == nil {
+// getReceiver returns receiver type name for a function declaration.
+func getReceiver(f *ast.FuncDecl) string {
+	if f == nil || f.Recv == nil {
 		return ""
 	}
-	for _, field := range recv.List {
+	for _, field := range f.Recv.List {
 		switch typ := field.Type.(type) {
 		case *ast.StarExpr:
 			if si, ok := typ.X.(*ast.Ident); ok {
@@ -208,7 +209,7 @@ func filterDecls(decls []ast.Decl, dataFileTypes []string) []ast.Decl {
 		switch declType := decl.(type) {
 		case *ast.FuncDecl:
 			// skip scale method if receiver type is not defined in data file
-			receiverTypeName := getReceiver(declType.Recv)
+			receiverTypeName := getReceiver(declType)
 			if receiverTypeName == "" {
 				panic("receiver can't be empty")
 			}

@@ -72,6 +72,7 @@ func TestCleanupScaleFile(t *testing.T) {
 			continue
 		}
 		t.Run(file.Name(), func(t *testing.T) {
+			dataFile := filepath.Join(dir, file.Name())
 			scaleFile := filepath.Join(dir, ScaleFile(file.Name()))
 			scaleEmptyFile := scaleFile + ".empty"
 
@@ -85,7 +86,7 @@ func TestCleanupScaleFile(t *testing.T) {
 			err = ioutil.WriteFile(scaleFileCopy, scaleFileData, 0644)
 			defer os.Remove(scaleFileCopy)
 
-			err = cleanupScaleFile(scaleFileCopy)
+			err = cleanupScaleFile(dataFile, scaleFileCopy)
 			require.NoError(t, err)
 
 			scaleFileCopyData, err := os.ReadFile(scaleFileCopy)
