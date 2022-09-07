@@ -182,6 +182,86 @@ func removeOneFieldInEveryStructType(file string) error {
 	return nil
 }
 
+func TestScaleFileNoErrorOnGenerateWhenTypeRemoved(t *testing.T) {
+	dir := testDataDir(t)
+	files, err := os.ReadDir(dir)
+	require.NoError(t, err)
+
+	for _, file := range files {
+		file := file
+		if file.IsDir() {
+			continue
+		}
+		if strings.Contains(file.Name(), scaleSuffix) {
+			continue
+		}
+		t.Run(file.Name(), func(t *testing.T) {
+			typeFile := filepath.Join(dir, file.Name())
+			scaleFile := filepath.Join(dir, ScaleFile(file.Name()))
+
+			typeFileData, err := os.ReadFile(typeFile)
+			require.NoError(t, err)
+			defer restoreFile(typeFile, typeFileData)
+
+			scaleFileData, err := os.ReadFile(scaleFile)
+			require.NoError(t, err)
+			defer restoreFile(scaleFile, scaleFileData)
+
+			err = removeFirstTypeDeclaration(typeFile)
+			require.NoError(t, err)
+
+			require.NoError(t, RunGenerate(typeFile, scaleFile, nil))
+		})
+	}
+}
+
+func removeFirstTypeDeclaration(file string) error {
+	fIn, err := os.Open(file)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("failed to open file '%s': %w", file, err)
+	}
+	defer fIn.Close()
+
+	fset := token.NewFileSet()
+
+	parsed, err := parser.ParseFile(fset, file, fIn, parser.AllErrors)
+	if err != nil {
+		return fmt.Errorf("failed parsing file '%s': %w", file, err)
+	}
+
+	filteredDecls := parsed.Decls[:0]
+	firstTypeDeclRemoved := false
+	for _, decl := range parsed.Decls {
+		switch declType := decl.(type) {
+		case *ast.GenDecl:
+			if !firstTypeDeclRemoved && declType.Tok == token.TYPE {
+				firstTypeDeclRemoved = true
+				continue
+			}
+			filteredDecls = append(filteredDecls, declType)
+		}
+	}
+
+	parsed.Decls = filteredDecls
+
+	// write modified syntax tree back to the file
+	fOut, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("failed to truncate file '%s': %w", file, err)
+	}
+	defer fOut.Close()
+
+	err = printer.Fprint(fOut, fset, parsed)
+	if err != nil {
+		return fmt.Errorf("failed writing changes back to file '%s': %w", file, err)
+	}
+
+	return nil
+}
+
 func FuzzScaleFile(f *testing.F) {
 	f.Fuzz(func(t *testing.T, pattern string) {
 		in := pattern + ".go"
