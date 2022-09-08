@@ -9,10 +9,13 @@ type Data struct {
 	NestedStruct        nested.Struct
 	NestedStructPointer *nested.Struct
 	NestedStructSlice   []nested.Struct
-	NestedAlias         nested.StringAlias
-	StrSlice            []string
-	ByteArray           [20]byte
-	ByteSlice           []byte
-	SliceOfByteSlices   [][]byte
-	Uint64              uint64
+}
+
+type MoreData struct {
+	NestedAlias       nested.StringAlias
+	StrSlice          []string
+	ByteArray         [20]byte
+	ByteSlice         []byte
+	SliceOfByteSlices [][]byte
+	Uint64            uint64
 }
