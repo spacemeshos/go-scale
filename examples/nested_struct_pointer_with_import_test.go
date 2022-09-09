@@ -1,8 +1,9 @@
 package examples
 
 import (
-	"github.com/spacemeshos/go-scale/tester"
 	"testing"
+
+	"github.com/spacemeshos/go-scale/tester"
 )
 
 func FuzzNestedStructPointerConsistency(f *testing.F) {

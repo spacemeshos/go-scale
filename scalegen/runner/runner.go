@@ -185,7 +185,6 @@ func getReceiver(f *ast.FuncDecl) string {
 const goScaleImport = `"github.com/spacemeshos/go-scale"`
 
 func filterImports(imports []*ast.ImportSpec) []*ast.ImportSpec {
-
 	newImports := imports[:0]
 	for _, imp := range imports {
 		if imp.Path.Value != goScaleImport {

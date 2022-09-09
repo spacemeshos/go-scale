@@ -7,7 +7,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -83,7 +82,8 @@ func TestCleanupScaleFile(t *testing.T) {
 
 			scaleFileCopy := scaleFile + ".copy"
 			require.NoError(t, err)
-			err = ioutil.WriteFile(scaleFileCopy, scaleFileData, 0644)
+			err = os.WriteFile(scaleFileCopy, scaleFileData, 0o644)
+			require.NoError(t, err)
 			defer os.Remove(scaleFileCopy)
 
 			err = cleanupScaleFile(dataFile, scaleFileCopy)
@@ -131,7 +131,7 @@ func TestScaleFileNoErrorOnGenerateWhenFieldRemoved(t *testing.T) {
 }
 
 func restoreFile(file string, body []byte) error {
-	return ioutil.WriteFile(file, body, 0644)
+	return os.WriteFile(file, body, 0o644)
 }
 
 func removeOneFieldInEveryStructType(file string) error {
