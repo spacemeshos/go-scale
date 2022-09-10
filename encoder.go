@@ -181,7 +181,7 @@ func encodeOneZero[V ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
 
 func encodeOneOne(e *Encoder, v uint64) (int, error) {
 	needed := 8 - bits.LeadingZeros64(v)/8
-	e.scratch[0] = byte(needed)<<2 | 0b11
+	e.scratch[0] = byte(needed-4)<<2 | 0b11
 	for i := 1; i <= needed; i++ {
 		e.scratch[i] = byte(v)
 		v >>= 8
