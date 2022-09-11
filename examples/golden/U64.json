@@ -4,5 +4,5 @@
 }
 {
     "Hex": "ff",
-    "Error": "invalid compact64 needs 63 bytes"
+    "Error": "invalid compact64 needs 67 bytes"
 }
