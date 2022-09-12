@@ -3,6 +3,6 @@
     "Hex": "821a0600"
 }
 {
-    "Hex": "170000000001",
+    "Hex": "070000000001",
     "Error": "invalid compact32 needs 5 bytes"
 }

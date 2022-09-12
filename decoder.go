@@ -137,7 +137,7 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 			uint32(d.scratch[2])<<16 |
 			uint32(d.scratch[3])<<24) >> 2
 	case 3:
-		needed := byte(d.scratch[0]) >> 2
+		needed := byte(d.scratch[0])>>2 + 4
 		if needed > 4 {
 			return value, 0, fmt.Errorf("invalid compact32 needs %d bytes", needed)
 		}
@@ -195,7 +195,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 			uint64(d.scratch[2])<<16 |
 			uint64(d.scratch[3])<<24) >> 2
 	case 3:
-		needed := byte(d.scratch[0]) >> 2
+		needed := byte(d.scratch[0])>>2 + 4
 		if needed > 8 {
 			return value, 0, fmt.Errorf("invalid compact64 needs %d bytes", needed)
 		}
