@@ -16,7 +16,7 @@
 }
 {
     "Hex": "0104",
-    "Error": "value 256 overflows uint8"
+    "Error": "value 256 is out of range"
 }
 {
     "Hex": "821a0600",

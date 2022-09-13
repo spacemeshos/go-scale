@@ -4,7 +4,7 @@
 }
 {
     "Hex": "821a0600",
-    "Error": "value 100000 overflows uint16"
+    "Error": "value 100000 is out of range"
 }
 {
     "Hex": "170000000001",
