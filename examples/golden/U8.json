@@ -8,7 +8,7 @@
 }
 {
     "Object": {"Value": 64},
-    "Hex": "0101"
+    "Error": "value 64 is out of range"
 }
 {
     "Object": {"Value": 255},
