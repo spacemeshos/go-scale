@@ -1,6 +1,14 @@
 {
-    "Object": {"Value": 256},
-    "Hex": "0104"
+    "Object": {"Value": 64},
+    "Hex": "0101"
+}
+{
+    "Object": {"Value": 16383},
+    "Hex": "fdff"
+}
+{
+    "Hex": "fd00",
+    "Error": "value 63 is out of range"
 }
 {
     "Hex": "821a0600",

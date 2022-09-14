@@ -15,6 +15,10 @@
     "Hex": "fd03"
 }
 {
+    "Hex": "fd00",
+    "Error": "value 63 is out of range"
+}
+{
     "Hex": "0104",
     "Error": "value 256 is out of range"
 }
