@@ -4,7 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
+)
+
+const (
+	maxUint6  = 1<<6 - 1
+	maxUint8  = 1<<8 - 1
+	maxUint14 = 1<<14 - 1
+	maxUint16 = 1<<16 - 1
+	maxUint30 = 1<<30 - 1
 )
 
 // ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
@@ -48,18 +55,18 @@ func DecodeCompact8(d *Decoder) (uint8, int, error) {
 	total += n
 	switch d.scratch[0] % 4 {
 	case 0:
-		value = uint8(d.scratch[0]) >> 2
+		value = d.scratch[0] >> 2
 	case 1:
 		n, err := d.read(d.scratch[1:2])
 		if err != nil {
 			return value, 0, err
 		}
 		total += n
-		if rst := (uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2; rst > math.MaxUint8 {
-			return 0, 0, fmt.Errorf("value %d overflows uint8", rst)
-		} else {
-			value = uint8(rst)
+		rst := (uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2
+		if rst <= maxUint6 || rst > maxUint8 {
+			return 0, 0, fmt.Errorf("value %d is out of range", rst)
 		}
+		value = uint8(rst)
 	default:
 		return 0, 0, fmt.Errorf("value will overflow uint8")
 	}
@@ -86,20 +93,23 @@ func DecodeCompact16(d *Decoder) (uint16, int, error) {
 		}
 		total += n
 		value = (uint16(d.scratch[0]) | uint16(d.scratch[1])<<8) >> 2
+		if value <= maxUint6 || value > maxUint14 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
+		}
 	case 2:
 		n, err := d.read(d.scratch[1:4])
 		if err != nil {
 			return value, 0, err
 		}
 		total += n
-		if rst := (uint32(d.scratch[0]) |
+		rst := (uint32(d.scratch[0]) |
 			uint32(d.scratch[1])<<8 |
 			uint32(d.scratch[2])<<16 |
-			uint32(d.scratch[3])<<24) >> 2; rst > math.MaxUint16 {
-			return 0, 0, fmt.Errorf("value %d overflows uint16", rst)
-		} else {
-			value = uint16(rst)
+			uint32(d.scratch[3])<<24) >> 2
+		if rst < maxUint14 || rst > maxUint16 {
+			return 0, 0, fmt.Errorf("value %d is out of range", rst)
 		}
+		value = uint16(rst)
 	default:
 		return 0, 0, fmt.Errorf("value will overflow uint16")
 	}
@@ -126,6 +136,9 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 		}
 		total += n
 		value = (uint32(d.scratch[0]) | uint32(d.scratch[1])<<8) >> 2
+		if value <= maxUint6 || value > maxUint14 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
+		}
 	case 2:
 		n, err := d.read(d.scratch[1:4])
 		if err != nil {
@@ -136,8 +149,11 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 			uint32(d.scratch[1])<<8 |
 			uint32(d.scratch[2])<<16 |
 			uint32(d.scratch[3])<<24) >> 2
+		if value < maxUint14 || value > maxUint30 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
+		}
 	case 3:
-		needed := byte(d.scratch[0])>>2 + 4
+		needed := d.scratch[0]>>2 + 4
 		if needed > 4 {
 			return value, 0, fmt.Errorf("invalid compact32 needs %d bytes", needed)
 		}
@@ -148,6 +164,9 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 		total += int(needed)
 		for i := 0; i < int(needed); i++ {
 			value |= uint32(d.scratch[i]) << (8 * i)
+		}
+		if value < maxUint30 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
 		}
 	}
 	return value, total, nil
@@ -184,6 +203,9 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 		}
 		total += n
 		value = (uint64(d.scratch[0]) | uint64(d.scratch[1])<<8) >> 2
+		if value <= maxUint6 || value > maxUint14 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
+		}
 	case 2:
 		n, err := d.read(d.scratch[1:4])
 		if err != nil {
@@ -194,8 +216,11 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 			uint64(d.scratch[1])<<8 |
 			uint64(d.scratch[2])<<16 |
 			uint64(d.scratch[3])<<24) >> 2
+		if value < maxUint14 || value > maxUint30 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
+		}
 	case 3:
-		needed := byte(d.scratch[0])>>2 + 4
+		needed := d.scratch[0]>>2 + 4
 		if needed > 8 {
 			return value, 0, fmt.Errorf("invalid compact64 needs %d bytes", needed)
 		}
@@ -206,6 +231,9 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 		total += n
 		for i := 0; i < int(needed); i++ {
 			value |= uint64(d.scratch[i]) << (8 * i)
+		}
+		if value < maxUint30 {
+			return 0, 0, fmt.Errorf("value %d is out of range", value)
 		}
 	}
 	return value, total, nil

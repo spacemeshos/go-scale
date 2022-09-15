@@ -1,4 +1,12 @@
 {
+    "Object": {"Value": 64},
+    "Hex": "0101"
+}
+{
+    "Object": {"Value": 16383},
+    "Hex": "fdff"
+}
+{
     "Object": {"Value": 4294967296},
     "Hex": "070000000001"
 }
