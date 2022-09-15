@@ -40,6 +40,8 @@ func testEncode(tb testing.TB, value any) []byte {
 		_, err = EncodeByteSlice(enc, val)
 	case string:
 		_, err = EncodeString(enc, val)
+	case []string:
+		_, err = EncodeStringSlice(enc, val)
 	}
 	require.NoError(tb, err)
 	return buf.Bytes()
@@ -64,6 +66,8 @@ func expectEqual(tb testing.TB, value any, r io.Reader) {
 		rst, _, err = DecodeByteSlice(dec)
 	case string:
 		rst, _, err = DecodeString(dec)
+	case []string:
+		rst, _, err = DecodeStringSlice(dec)
 	}
 	require.NoError(tb, err)
 	require.Equal(tb, value, rst)
@@ -97,6 +101,10 @@ func TestReadFull(t *testing.T) {
 		{
 			desc:   "string",
 			expect: "dsa1232131312dsada123312",
+		},
+		{
+			desc:   "string slice",
+			expect: []string{"qwe123", "dsa456"},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
