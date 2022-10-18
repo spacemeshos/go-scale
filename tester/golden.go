@@ -9,8 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spacemeshos/go-scale"
 	"github.com/stretchr/testify/require"
+
+	"github.com/spacemeshos/go-scale"
 )
 
 type GoldenTestCase[T any, H scale.TypePtr[T]] struct {

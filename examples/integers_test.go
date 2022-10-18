@@ -4,8 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/spacemeshos/go-scale/tester"
 	"github.com/stretchr/testify/require"
+
+	"github.com/spacemeshos/go-scale/tester"
 )
 
 func FuzzU8Consistency(f *testing.F) {
