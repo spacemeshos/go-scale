@@ -89,7 +89,7 @@ func getModule(in string, parts []string) (string, error) {
 			parts[i], parts[j] = parts[j], parts[i]
 		}
 		parts = parts[:len(parts)-1]
-		return filepath.Join(parts...), nil
+		return strings.Join(parts, "/"), nil
 	}
 	return getModule(dir, append(parts, filepath.Base(dir)))
 }
