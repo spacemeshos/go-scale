@@ -1,6 +1,14 @@
 all: build test
 .PHONY: all
 
+build:
+	go build -o bin/go-scale ./scalegen
+.PHONY: build
+
+test:
+	gotestsum -- -timeout 5m -p 1 -race ./...
+.PHONY: test
+
 install:
 	go mod download
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.50.0
