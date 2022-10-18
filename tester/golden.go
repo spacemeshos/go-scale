@@ -24,7 +24,7 @@ type GoldenTestCase[T any, H scale.TypePtr[T]] struct {
 func GoldenTest[T any, H scale.TypePtr[T]](t *testing.T, path string) {
 	f, err := os.Open(path)
 	require.NoError(t, err)
-	defer f.Close()
+	t.Cleanup(func() { f.Close() })
 	jcodec := json.NewDecoder(f)
 	for {
 		var tc GoldenTestCase[T, H]

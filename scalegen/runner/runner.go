@@ -9,12 +9,10 @@ import (
 	"go/token"
 	"html/template"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"golang.org/x/mod/modfile"
 )
@@ -31,7 +29,7 @@ import (
 )
 
 func main() {
-	if err := scale.Generate("{{ .Package }}", "{{ .Output }}", {{ .Objects }}); err != nil {
+	if err := scale.Generate("{{ .Package }}",` + " `{{ .Output }}`" + `, {{ .Objects }}); err != nil {
 		log.Fatalf("Generate failed with %v", err)
 	}
 }
@@ -71,8 +69,6 @@ func getModule(in string, parts []string) (string, error) {
 		return "", errors.New("not a module")
 	}
 	dir := filepath.Dir(in)
-	log.Printf("looking for go.mod. file %s. directory %s. base %s",
-		in, dir, filepath.Base(dir))
 	modf := filepath.Join(dir, "go.mod")
 	if f, err := os.Open(modf); err == nil {
 		defer f.Close()
@@ -90,7 +86,7 @@ func getModule(in string, parts []string) (string, error) {
 			parts[i], parts[j] = parts[j], parts[i]
 		}
 		parts = parts[:len(parts)-1]
-		return filepath.Join(parts...), nil
+		return strings.Join(parts, "/"), nil
 	}
 	return getModule(dir, append(parts, filepath.Base(dir)))
 }
@@ -196,7 +192,7 @@ func filterImports(imports []*ast.ImportSpec) []*ast.ImportSpec {
 	return newImports
 }
 
-// filterDecls removes scale methods for deleted types as well as all imports but go-scale
+// filterDecls removes scale methods for deleted types as well as all imports but go-scale.
 func filterDecls(decls []ast.Decl, dataFileTypes []string) []ast.Decl {
 	typesIndex := make(map[string]struct{}, len(dataFileTypes))
 	for _, t := range dataFileTypes {
@@ -257,15 +253,12 @@ func RunGenerate(in, out string, types []string) error {
 
 	if types == nil {
 		types = getTypes(parsed)
-		log.Printf("discovered types %+v", types)
 	}
 	pkg := getPkg(parsed)
-	log.Printf("discovered package '%s'", pkg)
 	module, err := getModule(in, nil)
 	if err != nil {
 		return err
 	}
-	log.Printf("discovered module '%s'", module)
 
 	list := []string{}
 	for _, obj := range types {
@@ -288,14 +281,11 @@ func RunGenerate(in, out string, types []string) error {
 	if err != nil {
 		return err
 	}
-	now := time.Now()
-	programfile := filepath.Join("/tmp/", fmt.Sprintf("scale_gen_%v.go", now.Unix()))
-	f, err = os.Create(programfile)
+	f, err = os.CreateTemp("", "scale_gen_*.go")
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	log.Printf("program file: %v", programfile)
 	defer os.Remove(f.Name())
 
 	if err := tpl.Execute(f, ctx); err != nil {
@@ -304,7 +294,7 @@ func RunGenerate(in, out string, types []string) error {
 	if err := f.Sync(); err != nil {
 		return err
 	}
-	cmd := exec.Command("go", "run", programfile)
+	cmd := exec.Command("go", "run", f.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
