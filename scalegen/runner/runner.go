@@ -9,7 +9,6 @@ import (
 	"go/token"
 	"html/template"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -70,8 +69,6 @@ func getModule(in string, parts []string) (string, error) {
 		return "", errors.New("not a module")
 	}
 	dir := filepath.Dir(in)
-	log.Printf("looking for go.mod. file %s. directory %s. base %s",
-		in, dir, filepath.Base(dir))
 	modf := filepath.Join(dir, "go.mod")
 	if f, err := os.Open(modf); err == nil {
 		defer f.Close()
@@ -256,15 +253,12 @@ func RunGenerate(in, out string, types []string) error {
 
 	if types == nil {
 		types = getTypes(parsed)
-		log.Printf("discovered types %+v", types)
 	}
 	pkg := getPkg(parsed)
-	log.Printf("discovered package '%s'", pkg)
 	module, err := getModule(in, nil)
 	if err != nil {
 		return err
 	}
-	log.Printf("discovered module '%s'", module)
 
 	list := []string{}
 	for _, obj := range types {
@@ -292,7 +286,6 @@ func RunGenerate(in, out string, types []string) error {
 		return err
 	}
 	defer f.Close()
-	log.Printf("program file: %v", f.Name())
 	defer os.Remove(f.Name())
 
 	if err := tpl.Execute(f, ctx); err != nil {
@@ -301,9 +294,6 @@ func RunGenerate(in, out string, types []string) error {
 	if err := f.Sync(); err != nil {
 		return err
 	}
-	s, err := os.ReadFile(f.Name())
-	log.Println(string(s))
-	log.Println(err)
 	cmd := exec.Command("go", "run", f.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
