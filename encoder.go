@@ -14,13 +14,12 @@ var MaxElements uint32 = 1 << 20
 var ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
 
 const (
-	// 0b00 | value
+	// 0b00 | value.
 	zerozero = 63
-	// 0b01 | value << 2
+	// 0b01 | value << 2.
 	zeroone = 16383
-	// 0b10 | value << 2
+	// 0b10 | value << 2.
 	onezero = 1073741823
-	// oneone is a big integer mode
 )
 
 type Encodable interface {

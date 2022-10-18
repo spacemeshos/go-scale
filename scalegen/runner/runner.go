@@ -196,7 +196,7 @@ func filterImports(imports []*ast.ImportSpec) []*ast.ImportSpec {
 	return newImports
 }
 
-// filterDecls removes scale methods for deleted types as well as all imports but go-scale
+// filterDecls removes scale methods for deleted types as well as all imports but go-scale.
 func filterDecls(decls []ast.Decl, dataFileTypes []string) []ast.Decl {
 	typesIndex := make(map[string]struct{}, len(dataFileTypes))
 	for _, t := range dataFileTypes {
