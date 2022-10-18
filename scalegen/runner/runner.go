@@ -301,6 +301,9 @@ func RunGenerate(in, out string, types []string) error {
 	if err := f.Sync(); err != nil {
 		return err
 	}
+	s, err := os.ReadFile(f.Name())
+	log.Println(s)
+	log.Println(err)
 	cmd := exec.Command("go", "run", f.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

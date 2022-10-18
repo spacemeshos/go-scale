@@ -38,6 +38,8 @@ func TestGoldenExamples(t *testing.T) {
 		t.Run(file.Name(), func(t *testing.T) {
 			in := filepath.Join(dir, file.Name())
 			out := filepath.Join(t.TempDir(), "scale.go")
+			t.Log("in:", in)
+			t.Log("out:", out)
 			require.NoError(t, RunGenerate(in, out, nil))
 			golden := filepath.Join(dir, ScaleFile(file.Name()))
 
