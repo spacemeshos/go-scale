@@ -38,16 +38,16 @@ func TestGoldenExamples(t *testing.T) {
 		t.Run(file.Name(), func(t *testing.T) {
 			in := filepath.Join(dir, file.Name())
 			out := filepath.Join(t.TempDir(), "scale.go")
-			t.Log("in:", in)
-			t.Log("out:", out)
 			require.NoError(t, RunGenerate(in, out, nil))
 			golden := filepath.Join(dir, ScaleFile(file.Name()))
 
 			outdata, err := os.ReadFile(out)
 			require.NoError(t, err)
+			outstring := strings.Trim(string(outdata), "\r")
 			goldendata, err := os.ReadFile(golden)
+			goldenstring := strings.Trim(string(goldendata), "\r")
 			require.NoError(t, err)
-			require.Equal(t, string(goldendata), string(outdata))
+			require.Equal(t, goldenstring, outstring)
 		})
 	}
 }
@@ -81,6 +81,7 @@ func TestCleanupScaleFile(t *testing.T) {
 			require.NoError(t, err)
 			scaleEmptyFileData, err := os.ReadFile(scaleEmptyFile)
 			require.NoError(t, err)
+			scaleEmptyFileString := strings.Trim(string(scaleEmptyFileData), "\r")
 
 			scaleFileCopy := scaleFile + ".copy"
 			require.NoError(t, err)
@@ -92,9 +93,10 @@ func TestCleanupScaleFile(t *testing.T) {
 			require.NoError(t, err)
 
 			scaleFileCopyData, err := os.ReadFile(scaleFileCopy)
+			scaleFileCopyString := strings.Trim(string(scaleFileCopyData), "\r")
 			require.NoError(t, err)
 
-			require.Equal(t, string(scaleFileCopyData), string(scaleEmptyFileData))
+			require.Equal(t, scaleFileCopyString, scaleEmptyFileString)
 		})
 	}
 }
