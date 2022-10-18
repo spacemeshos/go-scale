@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	fuzz "github.com/google/gofuzz"
+
 	"github.com/spacemeshos/go-scale"
 	"github.com/spacemeshos/go-scale/tester"
 )
