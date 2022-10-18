@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	if err := scale.Generate("{{ .Package }}", "{{ .Output }}", {{ .Objects }}); err != nil {
+	if err := scale.Generate("{{ .Package }}",` + " `{{ .Output }}`" + `, {{ .Objects }}); err != nil {
 		log.Fatalf("Generate failed with %v", err)
 	}
 }
