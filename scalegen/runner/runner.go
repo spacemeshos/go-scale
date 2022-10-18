@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"golang.org/x/mod/modfile"
 )
@@ -288,14 +287,12 @@ func RunGenerate(in, out string, types []string) error {
 	if err != nil {
 		return err
 	}
-	now := time.Now()
-	programfile := filepath.Join("/tmp/", fmt.Sprintf("scale_gen_%v.go", now.Unix()))
-	f, err = os.Create(programfile)
+	f, err = os.CreateTemp("", "scale_gen_*.go")
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	log.Printf("program file: %v", programfile)
+	log.Printf("program file: %v", f.Name())
 	defer os.Remove(f.Name())
 
 	if err := tpl.Execute(f, ctx); err != nil {
@@ -304,7 +301,7 @@ func RunGenerate(in, out string, types []string) error {
 	if err := f.Sync(); err != nil {
 		return err
 	}
-	cmd := exec.Command("go", "run", programfile)
+	cmd := exec.Command("go", "run", f.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

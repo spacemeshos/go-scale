@@ -84,7 +84,7 @@ func TestCleanupScaleFile(t *testing.T) {
 			require.NoError(t, err)
 			err = os.WriteFile(scaleFileCopy, scaleFileData, 0o644)
 			require.NoError(t, err)
-			defer os.Remove(scaleFileCopy)
+			t.Cleanup(func() { os.Remove(scaleFileCopy) })
 
 			err = cleanupScaleFile(dataFile, scaleFileCopy)
 			require.NoError(t, err)
@@ -116,11 +116,11 @@ func TestScaleFileNoErrorOnGenerateWhenFieldRemoved(t *testing.T) {
 
 			typeFileData, err := os.ReadFile(typeFile)
 			require.NoError(t, err)
-			defer restoreFile(typeFile, typeFileData)
+			t.Cleanup(func() { restoreFile(typeFile, typeFileData) })
 
 			scaleFileData, err := os.ReadFile(scaleFile)
 			require.NoError(t, err)
-			defer restoreFile(scaleFile, scaleFileData)
+			t.Cleanup(func() { restoreFile(scaleFile, scaleFileData) })
 
 			err = removeOneFieldInEveryStructType(typeFile)
 			require.NoError(t, err)
@@ -201,11 +201,11 @@ func TestScaleFileNoErrorOnGenerateWhenTypeRemoved(t *testing.T) {
 
 			typeFileData, err := os.ReadFile(typeFile)
 			require.NoError(t, err)
-			defer restoreFile(typeFile, typeFileData)
+			t.Cleanup(func() { restoreFile(typeFile, typeFileData) })
 
 			scaleFileData, err := os.ReadFile(scaleFile)
 			require.NoError(t, err)
-			defer restoreFile(scaleFile, scaleFileData)
+			t.Cleanup(func() { restoreFile(scaleFile, scaleFileData) })
 
 			err = removeFirstTypeDeclaration(typeFile)
 			require.NoError(t, err)
