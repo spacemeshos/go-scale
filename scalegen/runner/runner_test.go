@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"go/ast"
@@ -39,15 +40,15 @@ func TestGoldenExamples(t *testing.T) {
 			in := filepath.Join(dir, file.Name())
 			out := filepath.Join(t.TempDir(), "scale.go")
 			require.NoError(t, RunGenerate(in, out, nil))
-			golden := filepath.Join(dir, ScaleFile(file.Name()))
 
 			outdata, err := os.ReadFile(out)
 			require.NoError(t, err)
-			outstring := strings.Trim(string(outdata), "\r")
+			outdata = bytes.ReplaceAll(outdata, []byte("\r"), []byte{})
+			golden := filepath.Join(dir, ScaleFile(file.Name()))
 			goldendata, err := os.ReadFile(golden)
-			goldenstring := strings.Trim(string(goldendata), "\r")
 			require.NoError(t, err)
-			require.Equal(t, goldenstring, outstring)
+			goldendata = bytes.ReplaceAll(goldendata, []byte("\r"), []byte{})
+			require.Equal(t, string(goldendata), string(outdata))
 		})
 	}
 }
@@ -65,7 +66,6 @@ func TestCleanupScaleFile(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, file := range files {
-		file := file
 		if file.IsDir() {
 			continue
 		}
@@ -77,26 +77,23 @@ func TestCleanupScaleFile(t *testing.T) {
 			scaleFile := filepath.Join(dir, ScaleFile(file.Name()))
 			scaleEmptyFile := scaleFile + ".empty"
 
-			scaleFileData, err := os.ReadFile(scaleFile)
-			require.NoError(t, err)
 			scaleEmptyFileData, err := os.ReadFile(scaleEmptyFile)
 			require.NoError(t, err)
-			scaleEmptyFileString := strings.Trim(string(scaleEmptyFileData), "\r")
+			scaleEmptyFileData = bytes.ReplaceAll(scaleEmptyFileData, []byte("\r"), []byte{})
 
+			scaleFileData, err := os.ReadFile(scaleFile)
+			require.NoError(t, err)
 			scaleFileCopy := scaleFile + ".copy"
-			require.NoError(t, err)
-			err = os.WriteFile(scaleFileCopy, scaleFileData, 0o644)
-			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(scaleFileCopy, scaleFileData, 0o644))
 			t.Cleanup(func() { os.Remove(scaleFileCopy) })
 
-			err = cleanupScaleFile(dataFile, scaleFileCopy)
-			require.NoError(t, err)
+			require.NoError(t, cleanupScaleFile(dataFile, scaleFileCopy))
 
 			scaleFileCopyData, err := os.ReadFile(scaleFileCopy)
-			scaleFileCopyString := strings.Trim(string(scaleFileCopyData), "\r")
 			require.NoError(t, err)
+			scaleFileCopyData = bytes.ReplaceAll(scaleFileCopyData, []byte("\r"), []byte{})
 
-			require.Equal(t, scaleFileCopyString, scaleEmptyFileString)
+			require.Equal(t, string(scaleEmptyFileData), string(scaleFileCopyData))
 		})
 	}
 }
@@ -107,7 +104,6 @@ func TestScaleFileNoErrorOnGenerateWhenFieldRemoved(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, file := range files {
-		file := file
 		if file.IsDir() {
 			continue
 		}
@@ -192,7 +188,6 @@ func TestScaleFileNoErrorOnGenerateWhenTypeRemoved(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, file := range files {
-		file := file
 		if file.IsDir() {
 			continue
 		}
@@ -211,9 +206,7 @@ func TestScaleFileNoErrorOnGenerateWhenTypeRemoved(t *testing.T) {
 			require.NoError(t, err)
 			t.Cleanup(func() { restoreFile(scaleFile, scaleFileData) })
 
-			err = removeFirstTypeDeclaration(typeFile)
-			require.NoError(t, err)
-
+			require.NoError(t, removeFirstTypeDeclaration(typeFile))
 			require.NoError(t, RunGenerate(typeFile, scaleFile, nil))
 		})
 	}
