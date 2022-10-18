@@ -7,7 +7,6 @@ import (
 	"go/format"
 	"html/template"
 	"io"
-	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -234,7 +233,6 @@ func generateType(w io.Writer, gc *genContext, obj interface{}) error {
 		ParentPackage: typ.PkgPath(),
 		TypeName:      typ.Name(),
 	}
-	log.Printf("generating codec for type %+v", tc)
 	if err := executeAction(encode, w, gc, tc); err != nil {
 		return err
 	}
@@ -429,7 +427,6 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		} else if strings.Contains(scaleType.Name, "Struct") || strings.Contains(scaleType.Name, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
-		log.Printf("type context %+v", tctx)
 		if err := executeTemplate(w, getAction(getTemplate(scaleType), action), tctx); err != nil {
 			return err
 		}
