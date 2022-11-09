@@ -79,7 +79,7 @@ func EncodeStringWithLimit(e *Encoder, value string, limit uint32) (int, error) 
 		return total + n, nil
 	}
 
-	return EncodeByteSliceWithLimit(e, StringToBytes(value), limit)
+	return EncodeByteSliceWithLimit(e, stringToBytes(value), limit)
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
@@ -127,7 +127,7 @@ func EncodeStringSlice(e *Encoder, value []string) (int, error) {
 func EncodeStringSliceWithLimit(e *Encoder, value []string, limit uint32) (int, error) {
 	valueToBytes := make([][]byte, 0, len(value))
 	for i := range value {
-		valueToBytes = append(valueToBytes, StringToBytes(value[i]))
+		valueToBytes = append(valueToBytes, stringToBytes(value[i]))
 	}
 	return EncodeSliceOfByteSliceWithLimit(e, valueToBytes, limit)
 }

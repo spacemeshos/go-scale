@@ -10,7 +10,7 @@ func Benchmark_UnsafeBytesToString(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		out = BytesToString(in)
+		out = bytesToString(in)
 		// assert.Equal(b, "Hello World", out)
 	}
 	b.StopTimer()
@@ -36,7 +36,7 @@ func Benchmark_UnsafeStringToBytes(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		out = StringToBytes(in)
+		out = stringToBytes(in)
 		// assert.Equal(b, []byte("Hello World"), out)
 	}
 	b.StopTimer()
