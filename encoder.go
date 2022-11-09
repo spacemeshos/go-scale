@@ -31,6 +31,8 @@ type EncodablePtr[B any] interface {
 	*B
 }
 
+// NewEncoder returns a new encoder that writes to w.
+// If w implements io.StringWriter, the returned encoder will be more efficient in encoding strings.
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
@@ -65,7 +67,19 @@ func EncodeString(e *Encoder, value string) (int, error) {
 }
 
 func EncodeStringWithLimit(e *Encoder, value string, limit uint32) (int, error) {
-	return EncodeByteSliceWithLimit(e, []byte(value), limit)
+	if sw, ok := e.w.(io.StringWriter); ok {
+		total, err := EncodeLen(e, uint32(len(value)), limit)
+		if err != nil {
+			return 0, err
+		}
+		n, err := sw.WriteString(value)
+		if err != nil {
+			return 0, err
+		}
+		return total + n, nil
+	}
+
+	return EncodeByteSliceWithLimit(e, stringToBytes(value), limit)
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
@@ -113,7 +127,7 @@ func EncodeStringSlice(e *Encoder, value []string) (int, error) {
 func EncodeStringSliceWithLimit(e *Encoder, value []string, limit uint32) (int, error) {
 	valueToBytes := make([][]byte, 0, len(value))
 	for i := range value {
-		valueToBytes = append(valueToBytes, []byte(value[i]))
+		valueToBytes = append(valueToBytes, stringToBytes(value[i]))
 	}
 	return EncodeSliceOfByteSliceWithLimit(e, valueToBytes, limit)
 }
