@@ -16,6 +16,8 @@ func BenchmarkEncodeStrings_WithStringWriter(b *testing.B) {
 		EncodeString(enc, "Hello World")
 	}
 	b.StopTimer()
+
+	b.Log(buf.Len())
 }
 
 func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
@@ -28,4 +30,6 @@ func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
 		EncodeString(enc, "Hello World")
 	}
 	b.StopTimer()
+
+	b.Log(buf.Len())
 }
