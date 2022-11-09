@@ -7,7 +7,6 @@ import (
 )
 
 func BenchmarkEncodeStrings_WithStringWriter(b *testing.B) {
-
 	// strings.Builder implements the io.StringWriter interface.
 	var buf strings.Builder
 	enc := NewEncoder(&buf)
@@ -17,12 +16,9 @@ func BenchmarkEncodeStrings_WithStringWriter(b *testing.B) {
 		EncodeString(enc, "Hello World")
 	}
 	b.StopTimer()
-
-	_ = buf.Len() // avoid optimizations by compiler
 }
 
 func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
-
 	// bytes.Buffer does not implement the io.StringWriter interface.
 	var buf bytes.Buffer
 	enc := NewEncoder(&buf)
@@ -32,6 +28,4 @@ func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
 		EncodeString(enc, "Hello World")
 	}
 	b.StopTimer()
-
-	_ = buf.Len() // avoid optimizations by compiler
 }
