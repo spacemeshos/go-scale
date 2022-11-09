@@ -2,13 +2,24 @@ package scale
 
 import (
 	"bytes"
-	"strings"
 	"testing"
 )
 
+type customBuffer struct {
+	buf bytes.Buffer
+}
+
+func (c *customBuffer) Write(b []byte) (int, error) {
+	return c.buf.Write(b)
+}
+
+func (c *customBuffer) Len() int {
+	return c.buf.Len()
+}
+
 func BenchmarkEncodeStrings_WithStringWriter(b *testing.B) {
-	// strings.Builder implements the io.StringWriter interface.
-	var buf strings.Builder
+	// bytes.Buffer implements the io.StringWriter interface.
+	var buf bytes.Buffer
 	enc := NewEncoder(&buf)
 
 	b.StartTimer()
@@ -21,8 +32,8 @@ func BenchmarkEncodeStrings_WithStringWriter(b *testing.B) {
 }
 
 func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
-	// bytes.Buffer does not implement the io.StringWriter interface.
-	var buf bytes.Buffer
+	// CustomBuffer does not implement the io.StringWriter interface.
+	var buf customBuffer
 	enc := NewEncoder(&buf)
 
 	b.StartTimer()
