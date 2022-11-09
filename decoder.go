@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"unsafe"
 )
 
 const (
@@ -356,7 +355,7 @@ func DecodeStringSliceWithLimit(d *Decoder, limit uint32) ([]string, int, error)
 	}
 	result := make([]string, 0, len(sliceOfByteSlices))
 	for i := range sliceOfByteSlices {
-		result = append(result, *(*string)(unsafe.Pointer(&sliceOfByteSlices[i])))
+		result = append(result, BytesToString(sliceOfByteSlices[i]))
 	}
 
 	return result, n, nil
