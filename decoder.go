@@ -43,6 +43,14 @@ func (d *Decoder) read(buf []byte) (int, error) {
 	return io.ReadFull(d.r, buf)
 }
 
+func DecodeByte(d *Decoder) (byte, int, error) {
+	n, err := d.read(d.scratch[:1])
+	if err != nil {
+		return 0, n, err
+	}
+	return d.scratch[0], n, err
+}
+
 func DecodeCompact8(d *Decoder) (uint8, int, error) {
 	var (
 		value uint8
