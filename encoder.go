@@ -13,15 +13,6 @@ var MaxElements uint32 = 1 << 20
 // ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
 var ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
 
-const (
-	// 0b00 | value.
-	zerozero = 63
-	// 0b01 | value << 2.
-	zeroone = 16383
-	// 0b10 | value << 2.
-	onezero = 1073741823
-)
-
 type Encodable interface {
 	EncodeScale(*Encoder) (int, error)
 }
@@ -173,18 +164,18 @@ func EncodeUint64(e *Encoder, value uint64) (int, error) {
 	return e.w.Write(e.scratch[:8])
 }
 
-func encodeZeroZero[V ~uint8 | ~uint16 | ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
+func encodeUint8[V ~uint8 | ~uint16 | ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
 	e.scratch[0] = byte(v)
 	return e.w.Write(e.scratch[:1])
 }
 
-func encodeZeroOne[V ~uint16 | ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
+func encodeUint16[V ~uint16 | ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
 	e.scratch[0] = byte(v)
 	e.scratch[1] = byte(v >> 8)
 	return e.w.Write(e.scratch[:2])
 }
 
-func encodeOneZero[V ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
+func encodeUint32[V ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
 	e.scratch[0] = byte(v)
 	e.scratch[1] = byte(v >> 8)
 	e.scratch[2] = byte(v >> 16)
@@ -192,7 +183,7 @@ func encodeOneZero[V ~uint32 | ~uint64](e *Encoder, v V) (int, error) {
 	return e.w.Write(e.scratch[:4])
 }
 
-func encodeOneOne(e *Encoder, v uint64) (int, error) {
+func encodeBigUint(e *Encoder, v uint64) (int, error) {
 	needed := 8 - bits.LeadingZeros64(v)/8
 	e.scratch[0] = byte(needed-4)<<2 | 0b11
 	for i := 1; i <= needed; i++ {
@@ -203,41 +194,41 @@ func encodeOneOne(e *Encoder, v uint64) (int, error) {
 }
 
 func EncodeCompact8(e *Encoder, v uint8) (int, error) {
-	if v <= zerozero {
-		return encodeZeroZero(e, v<<2)
+	if v <= maxUint6 {
+		return encodeUint8(e, v<<2)
 	}
-	return encodeZeroOne(e, uint16(v)<<2|0b01)
+	return encodeUint16(e, uint16(v)<<2|0b01)
 }
 
 func EncodeCompact16(e *Encoder, v uint16) (int, error) {
-	if v <= zerozero {
-		return encodeZeroZero(e, v<<2)
-	} else if v <= zeroone {
-		return encodeZeroOne(e, v<<2|0b01)
+	if v <= maxUint6 {
+		return encodeUint8(e, v<<2)
+	} else if v <= maxUint14 {
+		return encodeUint16(e, v<<2|0b01)
 	}
-	return encodeOneZero(e, uint32(v)<<2|0b10)
+	return encodeUint32(e, uint32(v)<<2|0b10)
 }
 
 func EncodeCompact32(e *Encoder, v uint32) (int, error) {
-	if v <= zerozero {
-		return encodeZeroZero(e, v<<2)
-	} else if v <= zeroone {
-		return encodeZeroOne(e, v<<2|0b01)
-	} else if v <= onezero {
-		return encodeOneZero(e, v<<2|0b10)
+	if v <= maxUint6 {
+		return encodeUint8(e, v<<2)
+	} else if v <= maxUint14 {
+		return encodeUint16(e, v<<2|0b01)
+	} else if v <= maxUint30 {
+		return encodeUint32(e, v<<2|0b10)
 	}
-	return encodeOneOne(e, uint64(v))
+	return encodeBigUint(e, uint64(v))
 }
 
 func EncodeCompact64(e *Encoder, v uint64) (int, error) {
-	if v <= zerozero {
-		return encodeZeroZero(e, v<<2)
-	} else if v <= zeroone {
-		return encodeZeroOne(e, v<<2|0b01)
-	} else if v <= onezero {
-		return encodeOneZero(e, v<<2|0b10)
+	if v <= maxUint6 {
+		return encodeUint8(e, v<<2)
+	} else if v <= maxUint14 {
+		return encodeUint16(e, v<<2|0b01)
+	} else if v <= maxUint30 {
+		return encodeUint32(e, v<<2|0b10)
 	}
-	return encodeOneOne(e, uint64(v))
+	return encodeBigUint(e, uint64(v))
 }
 
 func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {

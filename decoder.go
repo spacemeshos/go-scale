@@ -114,7 +114,7 @@ func DecodeCompact16(d *Decoder) (uint16, int, error) {
 			uint32(d.scratch[1])<<8 |
 			uint32(d.scratch[2])<<16 |
 			uint32(d.scratch[3])<<24) >> 2
-		if rst < maxUint14 || rst > maxUint16 {
+		if rst <= maxUint14 || rst > maxUint16 {
 			return 0, 0, fmt.Errorf("value %d is out of range", rst)
 		}
 		value = uint16(rst)
@@ -157,7 +157,7 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 			uint32(d.scratch[1])<<8 |
 			uint32(d.scratch[2])<<16 |
 			uint32(d.scratch[3])<<24) >> 2
-		if value < maxUint14 || value > maxUint30 {
+		if value <= maxUint14 || value > maxUint30 {
 			return 0, 0, fmt.Errorf("value %d is out of range", value)
 		}
 	case 3:
@@ -173,7 +173,7 @@ func DecodeCompact32(d *Decoder) (uint32, int, error) {
 		for i := 0; i < int(needed); i++ {
 			value |= uint32(d.scratch[i]) << (8 * i)
 		}
-		if value < maxUint30 {
+		if value <= maxUint30 {
 			return 0, 0, fmt.Errorf("value %d is out of range", value)
 		}
 	}
@@ -224,7 +224,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 			uint64(d.scratch[1])<<8 |
 			uint64(d.scratch[2])<<16 |
 			uint64(d.scratch[3])<<24) >> 2
-		if value < maxUint14 || value > maxUint30 {
+		if value <= maxUint14 || value > maxUint30 {
 			return 0, 0, fmt.Errorf("value %d is out of range", value)
 		}
 	case 3:
@@ -240,7 +240,7 @@ func DecodeCompact64(d *Decoder) (uint64, int, error) {
 		for i := 0; i < int(needed); i++ {
 			value |= uint64(d.scratch[i]) << (8 * i)
 		}
-		if value < maxUint30 {
+		if value <= maxUint30 {
 			return 0, 0, fmt.Errorf("value %d is out of range", value)
 		}
 	}
