@@ -2,7 +2,10 @@ package scale
 
 import (
 	"bytes"
+	"math"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type customBuffer struct {
@@ -21,26 +24,126 @@ func BenchmarkEncodeStrings_WithStringWriter(b *testing.B) {
 	// bytes.Buffer implements the io.StringWriter interface.
 	var buf bytes.Buffer
 	enc := NewEncoder(&buf)
-
-	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		EncodeString(enc, "Hello World")
 	}
-	b.StopTimer()
-
-	b.Log(buf.Len())
 }
 
 func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
 	// CustomBuffer does not implement the io.StringWriter interface.
 	var buf customBuffer
 	enc := NewEncoder(&buf)
-
-	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		EncodeString(enc, "Hello World")
 	}
-	b.StopTimer()
+}
 
-	b.Log(buf.Len())
+type compactTestCase[T any] struct {
+	value  T
+	expect []byte
+}
+
+func uint8TestCases() []compactTestCase[uint8] {
+	return []compactTestCase[uint8]{
+		{0, []byte{0b0000_0000}},
+		{1, []byte{0b0000_0100}},
+		{maxUint6, []byte{0b1111_1100}},
+		{maxUint8, []byte{0b1111_1101, 0b0000_0011}},
+	}
+}
+
+func uint16TestCases() []compactTestCase[uint16] {
+	return []compactTestCase[uint16]{
+		{0, []byte{0b0000_0000}},
+		{1, []byte{0b0000_0100}},
+		{maxUint6, []byte{0b1111_1100}},
+		{maxUint8, []byte{0b1111_1101, 0b0000_0011}},
+		{maxUint14, []byte{0b1111_1101, 0b1111_1111}},
+		{maxUint14 + 1, []byte{0b0000_0010, 0b0000_0000, 0b0000_0001, 0b0000_0000}},
+		{maxUint16, []byte{0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
+	}
+}
+
+func uint32TestCases() []compactTestCase[uint32] {
+	return []compactTestCase[uint32]{
+		{0, []byte{0b0000_0000}},
+		{1, []byte{0b0000_0100}},
+		{maxUint6, []byte{0b1111_1100}},
+		{maxUint8, []byte{0b1111_1101, 0b0000_0011}},
+		{maxUint14, []byte{0b1111_1101, 0b1111_1111}},
+		{maxUint14 + 1, []byte{0b0000_0010, 0b0000_0000, 0b0000_0001, 0b0000_0000}},
+		{maxUint16, []byte{0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
+		{maxUint30, []byte{0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+		{maxUint30 + 1, []byte{0b0000_0011, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0100_0000}},
+		{math.MaxUint32, []byte{0b0000_0011, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+	}
+}
+
+func uint64TestCases() []compactTestCase[uint64] {
+	return []compactTestCase[uint64]{
+		{0, []byte{0b0000_0000}},
+		{1, []byte{0b0000_0100}},
+		{maxUint6, []byte{0b1111_1100}},
+		{maxUint8, []byte{0b1111_1101, 0b0000_0011}},
+		{maxUint14, []byte{0b1111_1101, 0b1111_1111}},
+		{maxUint14 + 1, []byte{0b0000_0010, 0b0000_0000, 0b0000_0001, 0b0000_0000}},
+		{maxUint16, []byte{0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
+		{maxUint30, []byte{0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+		{maxUint30 + 1, []byte{0b0000_0011, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0100_0000}},
+		{math.MaxUint32, []byte{0b0000_0011, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+		{math.MaxUint32 + 1, []byte{0b0000_0111, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0001}},
+		{1 << 40, []byte{0b0000_1011, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0001}},
+		{1 << 48, []byte{0b0000_1111, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0001}},
+		{1 << 56, []byte{0b0001_0011, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0000, 0b0000_0001}},
+		{math.MaxUint64, []byte{0b0001_0011, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+	}
+}
+
+func encodeTest[T any](t *testing.T, value T, expect []byte) {
+	buf := bytes.NewBuffer(nil)
+	enc := NewEncoder(buf)
+	var err error
+	switch typed := any(value).(type) {
+	case uint8:
+		_, err = EncodeCompact8(enc, typed)
+	case uint16:
+		_, err = EncodeCompact16(enc, typed)
+	case uint32:
+		_, err = EncodeCompact32(enc, typed)
+	case uint64:
+		_, err = EncodeCompact64(enc, typed)
+	}
+	require.NoError(t, err)
+	require.Equal(t, expect, buf.Bytes())
+}
+
+func TestEncodeCompactIntegers(t *testing.T) {
+	t.Run("uint8", func(t *testing.T) {
+		for _, tc := range uint8TestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
+	t.Run("uint16", func(t *testing.T) {
+		for _, tc := range uint16TestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
+	t.Run("uint32", func(t *testing.T) {
+		for _, tc := range uint32TestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
+	t.Run("uint64", func(t *testing.T) {
+		for _, tc := range uint64TestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
 }
