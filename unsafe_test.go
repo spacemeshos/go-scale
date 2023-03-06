@@ -40,6 +40,5 @@ func Benchmark_SafeStringToBytes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		out = []byte(in)
 	}
-	b.StopTimer()
 	_ = out
 }
