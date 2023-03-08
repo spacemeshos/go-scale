@@ -33,8 +33,7 @@ fn decode_encode(buf: &[u8]) -> Result<Vec<u8>, Error> {
         Vec<u8>,
         Vec<[u8; 32]>,
         Vec<Vec<u8>>,
-        Vec<Struct>,
-        Vec<Option<Struct>>
+        Vec<Struct>
     );
     Ok(output)
 }
@@ -72,4 +71,18 @@ pub unsafe extern "C" fn round_trip(input: *const c_uchar, input_len: usize) -> 
         }
     });
     Box::into_raw(resp)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn free_response(response: *mut Response) {
+    let response = Box::from_raw(response);
+    match response.code {
+        0 => {
+            Vec::from_raw_parts(response.ptr, response.len, response.len);
+        },
+        1 => {
+            String::from_raw_parts(response.ptr, response.len, response.len);
+        },
+        _ => {},
+    } 
 }
