@@ -2,11 +2,13 @@ package scale
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"math"
 	"testing"
 
+	"github.com/spacemeshos/go-scale/compat"
 	"github.com/stretchr/testify/require"
 )
 
@@ -327,4 +329,12 @@ func TestCompactIntegersBoundaries(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestRoundTrip(t *testing.T) {
+	buf := make([]byte, 20)
+	rand.Read(buf)
+	output, err := compat.RoundTrip(buf)
+	require.NoError(t, err)
+	require.Equal(t, buf, output)
 }
