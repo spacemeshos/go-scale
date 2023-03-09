@@ -238,7 +238,21 @@ func filterDecls(decls []ast.Decl, dataFileTypes []string) []ast.Decl {
 	return newDecls
 }
 
-func RunGenerate(in, out string, types []string) error {
+type generateOptions struct {
+	out io.Writer
+	err io.Writer
+}
+
+type GenerateOpt func(*generateOptions)
+
+// withStderr sets the error writer for the generate command.
+func withStderr(err io.Writer) GenerateOpt {
+	return func(o *generateOptions) {
+		o.err = err
+	}
+}
+
+func RunGenerate(in, out string, types []string, opts ...GenerateOpt) error {
 	f, err := os.Open(in)
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %w", in, err)
@@ -294,8 +308,17 @@ func RunGenerate(in, out string, types []string) error {
 	if err := f.Sync(); err != nil {
 		return err
 	}
+
+	cmdOpts := &generateOptions{
+		out: os.Stdout,
+		err: os.Stderr,
+	}
+	for _, opt := range opts {
+		opt(cmdOpts)
+	}
+
 	cmd := exec.Command("go", "run", f.Name())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = cmdOpts.out
+	cmd.Stderr = cmdOpts.err
 	return cmd.Run()
 }

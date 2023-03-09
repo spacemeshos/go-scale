@@ -10,7 +10,7 @@ import (
 
 func (t *NestedTypeAliasWithImport) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeString(enc, string(t.Value))
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 20)
 		if err != nil {
 			return total, err
 		}
@@ -21,7 +21,7 @@ func (t *NestedTypeAliasWithImport) EncodeScale(enc *scale.Encoder) (total int, 
 
 func (t *NestedTypeAliasWithImport) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeString(dec)
+		field, n, err := scale.DecodeStringWithLimit(dec, 20)
 		if err != nil {
 			return total, err
 		}

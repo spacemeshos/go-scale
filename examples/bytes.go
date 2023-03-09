@@ -15,13 +15,9 @@ type Bytes64 struct {
 }
 
 type Slice struct {
-	Value []byte
-}
-
-type SliceWithLimit struct {
 	Value []byte `scale:"max=10"`
 }
 
-type SliceOfByteSliceWithLimit struct {
-	Value [][]byte
+type SliceOfByteSlice struct {
+	Value [][]byte `scale:"max=10"`
 }

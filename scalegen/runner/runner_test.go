@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go/ast"
@@ -36,19 +37,59 @@ func TestGoldenExamples(t *testing.T) {
 		if file.IsDir() {
 			continue
 		}
+
 		t.Run(file.Name(), func(t *testing.T) {
 			in := filepath.Join(dir, file.Name())
 			out := filepath.Join(t.TempDir(), "scale.go")
 			require.NoError(t, RunGenerate(in, out, nil))
 
-			outdata, err := os.ReadFile(out)
+			outData, err := os.ReadFile(out)
 			require.NoError(t, err)
-			outdata = bytes.ReplaceAll(outdata, []byte("\r"), []byte{})
+			outData = bytes.ReplaceAll(outData, []byte("\r"), []byte{})
+
 			golden := filepath.Join(dir, ScaleFile(file.Name()))
-			goldendata, err := os.ReadFile(golden)
+			goldenData, err := os.ReadFile(golden)
 			require.NoError(t, err)
-			goldendata = bytes.ReplaceAll(goldendata, []byte("\r"), []byte{})
-			require.Equal(t, string(goldendata), string(outdata))
+			goldenData = bytes.ReplaceAll(goldenData, []byte("\r"), []byte{})
+
+			require.Equal(t, string(goldenData), string(outData))
+		})
+	}
+}
+
+func TestExampleErrors(t *testing.T) {
+	dir := filepath.Join(examplesDir(t), "errors")
+	files, err := os.ReadDir(dir)
+	require.NoError(t, err)
+
+	for _, file := range files {
+		file := file
+		if file.IsDir() {
+			continue
+		}
+		if !strings.HasSuffix(file.Name(), ".go") {
+			continue
+		}
+
+		t.Run(file.Name(), func(t *testing.T) {
+			in := filepath.Join(dir, file.Name())
+			out := filepath.Join(t.TempDir(), "scale.go")
+
+			jsonFile := strings.Replace(in, ".go", ".json", 1)
+			ref, err := os.Open(jsonFile)
+			require.NoError(t, err)
+
+			expected := struct {
+				Error []string
+			}{}
+			json.NewDecoder(ref).Decode(&expected)
+
+			stderr := &bytes.Buffer{}
+			require.Error(t, RunGenerate(in, out, nil, withStderr(stderr)))
+
+			for _, err := range expected.Error {
+				require.Contains(t, stderr.String(), err)
+			}
 		})
 	}
 }

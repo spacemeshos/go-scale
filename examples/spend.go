@@ -8,7 +8,7 @@ type Spend struct {
 }
 
 type SpendBody struct {
-	Adress   [20]byte
+	Address  [20]byte
 	Selector uint8
 	Payload  SpendPayload
 }
