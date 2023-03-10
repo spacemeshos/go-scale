@@ -30,29 +30,6 @@ func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error
 	return total, nil
 }
 
-func (t *StructWithStringSliceAndLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	{
-		n, err := scale.EncodeStringSliceWithLimit(enc, t.Value, 3)
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	return total, nil
-}
-
-func (t *StructWithStringSliceAndLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	{
-		field, n, err := scale.DecodeStringSliceWithLimit(dec, 3)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.Value = field
-	}
-	return total, nil
-}
-
 func (t *StructWithStringAlias) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
 		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 3)

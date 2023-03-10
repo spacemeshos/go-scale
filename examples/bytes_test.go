@@ -21,11 +21,3 @@ func FuzzBytesSliceConsistency(f *testing.F) {
 func FuzzBytesSliceSafety(f *testing.F) {
 	tester.FuzzSafety[Slice](f)
 }
-
-func FuzzSliceOfByteSliceWithLimitConsistency(f *testing.F) {
-	tester.FuzzConsistency[SliceOfByteSlice](f)
-}
-
-func FuzzSliceOfByteSliceWithLimitSafety(f *testing.F) {
-	tester.FuzzSafety[SliceOfByteSlice](f)
-}

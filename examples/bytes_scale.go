@@ -95,26 +95,3 @@ func (t *Slice) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	}
 	return total, nil
 }
-
-func (t *SliceOfByteSlice) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	{
-		n, err := scale.EncodeSliceOfByteSliceWithLimit(enc, t.Value, 10)
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	return total, nil
-}
-
-func (t *SliceOfByteSlice) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	{
-		field, n, err := scale.DecodeSliceOfByteSliceWithLimit(dec, 10)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.Value = field
-	}
-	return total, nil
-}

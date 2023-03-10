@@ -75,6 +75,29 @@ func (t *Data) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	return total, nil
 }
 
+func (t *Name) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	{
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 20)
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func (t *Name) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	{
+		field, n, err := scale.DecodeStringWithLimit(dec, 20)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		t.Value = string(field)
+	}
+	return total, nil
+}
+
 func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
 		n, err := scale.EncodeStringWithLimit(enc, string(t.NestedAlias), 20)
@@ -84,7 +107,7 @@ func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 		total += n
 	}
 	{
-		n, err := scale.EncodeStringSliceWithLimit(enc, t.StrSlice, 5)
+		n, err := scale.EncodeStructSliceWithLimit(enc, t.StrSlice, 5)
 		if err != nil {
 			return total, err
 		}
@@ -99,13 +122,6 @@ func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	}
 	{
 		n, err := scale.EncodeByteSliceWithLimit(enc, t.ByteSlice, 20)
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	{
-		n, err := scale.EncodeSliceOfByteSliceWithLimit(enc, t.SliceOfByteSlices, 10)
 		if err != nil {
 			return total, err
 		}
@@ -131,7 +147,7 @@ func (t *MoreData) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		t.NestedAlias = nested.StringAlias(field)
 	}
 	{
-		field, n, err := scale.DecodeStringSliceWithLimit(dec, 5)
+		field, n, err := scale.DecodeStructSliceWithLimit[Name](dec, 5)
 		if err != nil {
 			return total, err
 		}
@@ -152,14 +168,6 @@ func (t *MoreData) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		}
 		total += n
 		t.ByteSlice = field
-	}
-	{
-		field, n, err := scale.DecodeSliceOfByteSliceWithLimit(dec, 10)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.SliceOfByteSlices = field
 	}
 	{
 		field, n, err := scale.DecodeCompact64(dec)

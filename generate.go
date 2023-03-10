@@ -307,21 +307,20 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 	case reflect.Ptr:
 		return scaleType{Name: "Option"}, nil
 	case reflect.Slice:
+		if field.Type.Elem().Kind() == reflect.Slice && field.Type.Elem().Elem().Kind() == reflect.Uint8 {
+			// [][]byte
+			return scaleType{}, fmt.Errorf("nested slices are not supported")
+		}
+		if field.Type.Elem().Kind() == reflect.String {
+			// []string
+			return scaleType{}, fmt.Errorf("string slices are not supported")
+		}
 		maxElements, err := getMaxElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
 		if maxElements == 0 {
 			return scaleType{}, fmt.Errorf("slices must have max scale tag")
-		}
-		// [][]byte
-		if field.Type.Elem().Kind() == reflect.Slice && field.Type.Elem().Elem().Kind() == reflect.Uint8 {
-			// TODO(mafa): check how to handle length of slice in slice
-			return scaleType{Name: "SliceOfByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
-		}
-		if field.Type.Elem().Kind() == reflect.String {
-			// TODO(mafa): check how to handle length of string in slice
-			return scaleType{Name: "StringSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 		}
 		if field.Type.Elem().Kind() == reflect.Uint8 {
 			return scaleType{Name: "ByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil

@@ -11,11 +11,14 @@ type Data struct {
 	NestedStructSlice   []nested.Struct `scale:"max=5"`
 }
 
+type Name struct {
+	Value string `scale:"max=20"`
+}
+
 type MoreData struct {
-	NestedAlias       nested.StringAlias `scale:"max=20"`
-	StrSlice          []string           `scale:"max=5"`
-	ByteArray         [20]byte
-	ByteSlice         []byte   `scale:"max=20"`
-	SliceOfByteSlices [][]byte `scale:"max=10"`
-	Uint64            uint64
+	NestedAlias nested.StringAlias `scale:"max=20"`
+	StrSlice    []Name             `scale:"max=5"`
+	ByteArray   [20]byte
+	ByteSlice   []byte `scale:"max=20"`
+	Uint64      uint64
 }
