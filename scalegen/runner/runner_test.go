@@ -80,14 +80,14 @@ func TestExampleErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			expected := struct {
-				Error []string
+				Errors []string
 			}{}
 			json.NewDecoder(ref).Decode(&expected)
 
 			stderr := &bytes.Buffer{}
 			require.Error(t, RunGenerate(in, out, nil, withStderr(stderr)))
 
-			for _, err := range expected.Error {
+			for _, err := range expected.Errors {
 				require.Contains(t, stderr.String(), err)
 			}
 		})

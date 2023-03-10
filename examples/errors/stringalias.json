@@ -1,5 +1,5 @@
 {
-    "errors": [
-        "slices must have max scale tag"
+    "Errors": [
+        "strings must have max scale tag"
     ]
 }
