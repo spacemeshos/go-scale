@@ -10,7 +10,7 @@ import (
 
 func (t *NestedStructSlice) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeStructSlice(enc, t.Value)
+		n, err := scale.EncodeStructSliceWithLimit(enc, t.Value, 5)
 		if err != nil {
 			return total, err
 		}
@@ -21,7 +21,7 @@ func (t *NestedStructSlice) EncodeScale(enc *scale.Encoder) (total int, err erro
 
 func (t *NestedStructSlice) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeStructSlice[nested.Struct](dec)
+		field, n, err := scale.DecodeStructSliceWithLimit[nested.Struct](dec, 5)
 		if err != nil {
 			return total, err
 		}

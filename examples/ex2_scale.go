@@ -9,7 +9,7 @@ import (
 
 func (t *Ex2) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeStructSlice(enc, t.Slice)
+		n, err := scale.EncodeStructSliceWithLimit(enc, t.Slice, 2)
 		if err != nil {
 			return total, err
 		}
@@ -27,7 +27,7 @@ func (t *Ex2) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *Ex2) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeStructSlice[Ex2](dec)
+		field, n, err := scale.DecodeStructSliceWithLimit[Ex2](dec, 2)
 		if err != nil {
 			return total, err
 		}

@@ -10,7 +10,7 @@ import (
 
 func (t *Data) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeString(enc, string(t.Str))
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Str), 20)
 		if err != nil {
 			return total, err
 		}
@@ -31,7 +31,7 @@ func (t *Data) EncodeScale(enc *scale.Encoder) (total int, err error) {
 		total += n
 	}
 	{
-		n, err := scale.EncodeStructSlice(enc, t.NestedStructSlice)
+		n, err := scale.EncodeStructSliceWithLimit(enc, t.NestedStructSlice, 5)
 		if err != nil {
 			return total, err
 		}
@@ -42,7 +42,7 @@ func (t *Data) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *Data) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeString(dec)
+		field, n, err := scale.DecodeStringWithLimit(dec, 20)
 		if err != nil {
 			return total, err
 		}
@@ -65,7 +65,7 @@ func (t *Data) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		t.NestedStructPointer = field
 	}
 	{
-		field, n, err := scale.DecodeStructSlice[nested.Struct](dec)
+		field, n, err := scale.DecodeStructSliceWithLimit[nested.Struct](dec, 5)
 		if err != nil {
 			return total, err
 		}
@@ -75,16 +75,39 @@ func (t *Data) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	return total, nil
 }
 
+func (t *Name) EncodeScale(enc *scale.Encoder) (total int, err error) {
+	{
+		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 20)
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+	return total, nil
+}
+
+func (t *Name) DecodeScale(dec *scale.Decoder) (total int, err error) {
+	{
+		field, n, err := scale.DecodeStringWithLimit(dec, 20)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		t.Value = string(field)
+	}
+	return total, nil
+}
+
 func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeString(enc, string(t.NestedAlias))
+		n, err := scale.EncodeStringWithLimit(enc, string(t.NestedAlias), 20)
 		if err != nil {
 			return total, err
 		}
 		total += n
 	}
 	{
-		n, err := scale.EncodeStringSlice(enc, t.StrSlice)
+		n, err := scale.EncodeStructSliceWithLimit(enc, t.StrSlice, 5)
 		if err != nil {
 			return total, err
 		}
@@ -98,14 +121,7 @@ func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 		total += n
 	}
 	{
-		n, err := scale.EncodeByteSlice(enc, t.ByteSlice)
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	{
-		n, err := scale.EncodeSliceOfByteSlice(enc, t.SliceOfByteSlices)
+		n, err := scale.EncodeByteSliceWithLimit(enc, t.ByteSlice, 20)
 		if err != nil {
 			return total, err
 		}
@@ -123,7 +139,7 @@ func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *MoreData) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeString(dec)
+		field, n, err := scale.DecodeStringWithLimit(dec, 20)
 		if err != nil {
 			return total, err
 		}
@@ -131,7 +147,7 @@ func (t *MoreData) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		t.NestedAlias = nested.StringAlias(field)
 	}
 	{
-		field, n, err := scale.DecodeStringSlice(dec)
+		field, n, err := scale.DecodeStructSliceWithLimit[Name](dec, 5)
 		if err != nil {
 			return total, err
 		}
@@ -146,20 +162,12 @@ func (t *MoreData) DecodeScale(dec *scale.Decoder) (total int, err error) {
 		total += n
 	}
 	{
-		field, n, err := scale.DecodeByteSlice(dec)
+		field, n, err := scale.DecodeByteSliceWithLimit(dec, 20)
 		if err != nil {
 			return total, err
 		}
 		total += n
 		t.ByteSlice = field
-	}
-	{
-		field, n, err := scale.DecodeSliceOfByteSlice(dec)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.SliceOfByteSlices = field
 	}
 	{
 		field, n, err := scale.DecodeCompact64(dec)

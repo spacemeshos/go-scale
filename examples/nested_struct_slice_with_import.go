@@ -5,5 +5,5 @@ import "github.com/spacemeshos/go-scale/examples/nested"
 //go:generate scalegen
 
 type NestedStructSlice struct {
-	Value []nested.Struct
+	Value []nested.Struct `scale:"max=5"`
 }

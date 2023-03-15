@@ -46,7 +46,7 @@ func (t *Spend) DecodeScale(dec *scale.Decoder) (total int, err error) {
 
 func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeByteArray(enc, t.Adress[:])
+		n, err := scale.EncodeByteArray(enc, t.Address[:])
 		if err != nil {
 			return total, err
 		}
@@ -71,7 +71,7 @@ func (t *SpendBody) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *SpendBody) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		n, err := scale.DecodeByteArray(dec, t.Adress[:])
+		n, err := scale.DecodeByteArray(dec, t.Address[:])
 		if err != nil {
 			return total, err
 		}

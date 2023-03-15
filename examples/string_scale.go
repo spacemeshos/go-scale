@@ -9,29 +9,6 @@ import (
 
 func (t *StructWithString) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeString(enc, string(t.Value))
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	return total, nil
-}
-
-func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	{
-		field, n, err := scale.DecodeString(dec)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.Value = string(field)
-	}
-	return total, nil
-}
-
-func (t *StructWithStringLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	{
 		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 3)
 		if err != nil {
 			return total, err
@@ -41,7 +18,7 @@ func (t *StructWithStringLimit) EncodeScale(enc *scale.Encoder) (total int, err 
 	return total, nil
 }
 
-func (t *StructWithStringLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
+func (t *StructWithString) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
 		field, n, err := scale.DecodeStringWithLimit(dec, 3)
 		if err != nil {
@@ -53,53 +30,7 @@ func (t *StructWithStringLimit) DecodeScale(dec *scale.Decoder) (total int, err 
 	return total, nil
 }
 
-func (t *StructWithStringSliceAndLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	{
-		n, err := scale.EncodeStringSliceWithLimit(enc, t.Value, 3)
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	return total, nil
-}
-
-func (t *StructWithStringSliceAndLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	{
-		field, n, err := scale.DecodeStringSliceWithLimit(dec, 3)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.Value = field
-	}
-	return total, nil
-}
-
 func (t *StructWithStringAlias) EncodeScale(enc *scale.Encoder) (total int, err error) {
-	{
-		n, err := scale.EncodeString(enc, string(t.Value))
-		if err != nil {
-			return total, err
-		}
-		total += n
-	}
-	return total, nil
-}
-
-func (t *StructWithStringAlias) DecodeScale(dec *scale.Decoder) (total int, err error) {
-	{
-		field, n, err := scale.DecodeString(dec)
-		if err != nil {
-			return total, err
-		}
-		total += n
-		t.Value = StringAlias(field)
-	}
-	return total, nil
-}
-
-func (t *StructWithStringAliasAndLimit) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
 		n, err := scale.EncodeStringWithLimit(enc, string(t.Value), 3)
 		if err != nil {
@@ -110,7 +41,7 @@ func (t *StructWithStringAliasAndLimit) EncodeScale(enc *scale.Encoder) (total i
 	return total, nil
 }
 
-func (t *StructWithStringAliasAndLimit) DecodeScale(dec *scale.Decoder) (total int, err error) {
+func (t *StructWithStringAlias) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
 		field, n, err := scale.DecodeStringWithLimit(dec, 3)
 		if err != nil {

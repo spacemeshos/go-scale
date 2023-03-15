@@ -5,5 +5,5 @@ import "github.com/spacemeshos/go-scale/examples/nested"
 //go:generate scalegen
 
 type NestedTypeAliasWithImport struct {
-	Value nested.StringAlias
+	Value nested.StringAlias `scale:"max=20"`
 }

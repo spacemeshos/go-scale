@@ -14,6 +14,16 @@ func (t *Data) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	return total, nil
 }
 
+func (t *Name) EncodeScale(enc *scale.Encoder) (total int, err error) {
+
+	return total, nil
+}
+
+func (t *Name) DecodeScale(dec *scale.Decoder) (total int, err error) {
+
+	return total, nil
+}
+
 func (t *MoreData) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 	return total, nil
