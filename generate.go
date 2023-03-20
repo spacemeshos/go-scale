@@ -400,7 +400,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 
 		scaleType, err := getScaleType(typ, field)
 		if err != nil {
-			return fmt.Errorf("getting scale type: %w", err)
+			return fmt.Errorf("getting scale type for %s: %w", typ, err)
 		}
 
 		tctx := &typeContext{
