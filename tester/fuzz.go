@@ -13,9 +13,9 @@ import (
 	"github.com/spacemeshos/go-scale"
 )
 
-func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F) {
+func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F, fuzzFuncs ...any) {
 	f.Fuzz(func(t *testing.T, data []byte) {
-		fuzzer := fuzz.NewFromGoFuzz(data)
+		fuzzer := fuzz.NewFromGoFuzz(data).Funcs(fuzzFuncs...)
 		var object T
 		fuzzer.Fuzz(&object)
 
