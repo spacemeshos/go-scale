@@ -304,21 +304,20 @@ func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
 func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint32) ([]V, int, error) {
 	lth, total, err := DecodeLen(d, limit)
 	if err != nil {
-		return nil, 0, err
+		return nil, total, err
 	}
 	if lth == 0 {
-		return nil, 0, nil
+		return nil, total, nil
 	}
 
 	value := make([]V, 0, lth)
-
 	for i := uint32(0); i < lth; i++ {
 		val, n, err := DecodeStruct[V, H](d)
+		total += n
 		if err != nil {
-			return nil, 0, err
+			return nil, total, err
 		}
 		value = append(value, val)
-		total += n
 	}
 	return value, total, nil
 }
