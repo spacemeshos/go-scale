@@ -26,6 +26,7 @@ func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F, fuzzFuncs ...any) 
 			return
 		}
 		require.NoError(t, err)
+		require.Equal(t, n1, buf.Len())
 
 		dec := scale.NewDecoder(buf)
 		var decoded T
