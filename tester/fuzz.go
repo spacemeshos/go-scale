@@ -21,16 +21,19 @@ func FuzzConsistency[T any, H scale.TypePtr[T]](f *testing.F, fuzzFuncs ...any) 
 
 		buf := bytes.NewBuffer(nil)
 		enc := scale.NewEncoder(buf)
-		_, err := H(&object).EncodeScale(enc)
+		n1, err := H(&object).EncodeScale(enc)
 		if errors.Is(err, scale.ErrEncodeTooManyElements) {
 			return
 		}
 		require.NoError(t, err)
+		require.Equal(t, n1, buf.Len())
 
 		dec := scale.NewDecoder(buf)
 		var decoded T
-		_, err = H(&decoded).DecodeScale(dec)
+		n2, err := H(&decoded).DecodeScale(dec)
 		require.NoError(t, err)
+
+		require.Equal(t, n1, n2)
 
 		if !cmp.Equal(object, decoded, cmpopts.EquateEmpty()) {
 			t.Errorf("decoded didn't match original: %s", cmp.Diff(object, decoded))
