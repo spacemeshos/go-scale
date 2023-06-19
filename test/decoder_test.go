@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/spacemeshos/go-scale"
 	"github.com/stretchr/testify/require"
+
+	"github.com/spacemeshos/go-scale"
 )
 
 func Test_DecodeDeepNestedModule(t *testing.T) {
