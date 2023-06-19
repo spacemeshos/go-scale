@@ -102,7 +102,7 @@ func ScaleFile(original string) string {
 // cleanupScaleFile removes all function bodies in provided scale file leaving the last
 // (usually "return ...") statement only. It also removes scale methods for types missing in dataFilePath.
 func cleanupScaleFile(dataFilePath, scaleFilePath string) error {
-	// get types defained in data file
+	// get types contained in data file
 	dataFile, err := os.Open(dataFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to open data file '%s': %w", dataFilePath, err)

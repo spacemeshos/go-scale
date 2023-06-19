@@ -16,7 +16,7 @@ func main() {
 		original = os.Getenv("GOFILE")
 		split    []string
 	)
-	flag.StringVar(&types, "types", "", "autodiscovers types if not provided")
+	flag.StringVar(&types, "types", "", "auto discovers types if not provided")
 	flag.Parse()
 
 	if len(types) > 0 {

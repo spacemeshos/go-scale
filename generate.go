@@ -134,8 +134,11 @@ func Generate(pkg string, filepath string, objs ...interface{}) error {
 	buf := bytes.NewBuffer(nil)
 	ctx := &genContext{Package: pkg, Imported: generateImports(objs...)}
 
-	err := executeTemplate(buf, header, ctx)
+	tpl, err := template.New("").Parse(header)
 	if err != nil {
+		return err
+	}
+	if err := tpl.Execute(buf, ctx); err != nil {
 		return err
 	}
 
@@ -388,7 +391,11 @@ func getTemplate(stype scaleType) temp {
 func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) error {
 	typ := tc.Type
 
-	if err := executeTemplate(w, getAction(start, action), tc); err != nil {
+	tpl, err := template.New("").Parse(getAction(start, action))
+	if err != nil {
+		return err
+	}
+	if err := tpl.Execute(w, tc); err != nil {
 		return err
 	}
 	for i := 0; i < typ.NumField(); i++ {
@@ -419,7 +426,11 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		} else if strings.Contains(scaleType.Name, "Struct") || strings.Contains(scaleType.Name, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
-		if err := executeTemplate(w, getAction(getTemplate(scaleType), action), tctx); err != nil {
+		tpl, err := template.New("").Parse(getAction(getTemplate(scaleType), action))
+		if err != nil {
+			return err
+		}
+		if err := tpl.Execute(w, tctx); err != nil {
 			return err
 		}
 	}
@@ -448,12 +459,4 @@ func fullTypeName(gc *genContext, tc *typeContext, typ reflect.Type) string {
 		return name
 	}
 	return str
-}
-
-func executeTemplate(w io.Writer, text string, ctx interface{}) error {
-	tpl, err := template.New("").Parse(text)
-	if err != nil {
-		return err
-	}
-	return tpl.Execute(w, ctx)
 }
