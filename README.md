@@ -27,7 +27,7 @@ Not implemented:
 ## Code generation
 
 ```bash
-go install ./scalegen
+go install github.com/spacemeshos/go-scale/scalegen
 ```
 
-`//go:generate scalegen` will discover all struct types and derive EncodeScale/DecodeScale methods. To avoid structs autodiscovery use `-types=U8,U16`.
+`//go:generate scalegen` will discover all struct types and derive EncodeScale/DecodeScale methods. To avoid struct auto-discovery use `-types=U8,U16`.

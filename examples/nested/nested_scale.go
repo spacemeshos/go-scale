@@ -9,7 +9,7 @@ import (
 
 func (t *NestedModule) EncodeScale(enc *scale.Encoder) (total int, err error) {
 	{
-		n, err := scale.EncodeByteSlice(enc, t.Value)
+		n, err := scale.EncodeByteSliceWithLimit(enc, t.Value, 32)
 		if err != nil {
 			return total, err
 		}
@@ -20,7 +20,7 @@ func (t *NestedModule) EncodeScale(enc *scale.Encoder) (total int, err error) {
 
 func (t *NestedModule) DecodeScale(dec *scale.Decoder) (total int, err error) {
 	{
-		field, n, err := scale.DecodeByteSlice(dec)
+		field, n, err := scale.DecodeByteSliceWithLimit(dec, 32)
 		if err != nil {
 			return total, err
 		}

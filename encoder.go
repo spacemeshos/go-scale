@@ -8,10 +8,21 @@ import (
 	"math/bits"
 )
 
-var MaxElements uint32 = 1 << 20
+const (
+	// MaxElements is the maximum number of elements allowed in a collection if not set explicitly during encoding/decoding.
+	MaxElements uint32 = 1 << 20
 
-// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
-var ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
+	// MaxNested is the maximum nested level allowed if not set explicitly during encoding/decoding.
+	MaxNested uint = 4
+)
+
+var (
+	// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
+	ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
+
+	// ErrEncodeNestedTooDeep is returned when the depth of nested types exceeds the limit.
+	ErrEncodeNestedTooDeep = errors.New("nested level is too deep")
+)
 
 type Encodable interface {
 	EncodeScale(*Encoder) (int, error)
@@ -22,19 +33,59 @@ type EncodablePtr[B any] interface {
 	*B
 }
 
+type encoderOpts func(*Encoder)
+
+// WithEncodeMaxNested sets the nested level of the encoder.
+// A value of 0 means no nesting is allowed. The default value is 4.
+func WithEncodeMaxNested(nested uint) encoderOpts {
+	return func(e *Encoder) {
+		e.maxNested = nested
+	}
+}
+
+// WithEncodeMaxElements sets the maximum number of elements allowed in a collection.
+// The default value is 1 << 20.
+func WithEncodeMaxElements(elements uint32) encoderOpts {
+	return func(e *Encoder) {
+		e.maxElements = elements
+	}
+}
+
 // NewEncoder returns a new encoder that writes to w.
 // If w implements io.StringWriter, the returned encoder will be more efficient in encoding strings.
-func NewEncoder(w io.Writer) *Encoder {
-	return &Encoder{w: w}
+func NewEncoder(w io.Writer, opts ...encoderOpts) *Encoder {
+	e := &Encoder{
+		w:           w,
+		maxNested:   MaxNested,
+		maxElements: MaxElements,
+	}
+	for _, opt := range opts {
+		opt(e)
+	}
+	return e
 }
 
 type Encoder struct {
-	w       io.Writer
-	scratch [9]byte
+	w           io.Writer
+	scratch     [9]byte
+	maxNested   uint
+	maxElements uint32
+}
+
+func (e *Encoder) enterNested() error {
+	if e.maxNested == 0 {
+		return ErrEncodeNestedTooDeep
+	}
+	e.maxNested--
+	return nil
+}
+
+func (e *Encoder) leaveNested() {
+	e.maxNested++
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
-	return EncodeByteSliceWithLimit(e, value, MaxElements)
+	return EncodeByteSliceWithLimit(e, value, e.maxElements)
 }
 
 func EncodeByteSliceWithLimit(e *Encoder, value []byte, limit uint32) (int, error) {
@@ -54,30 +105,30 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeString(e *Encoder, value string) (int, error) {
-	return EncodeStringWithLimit(e, value, MaxElements)
+	return EncodeStringWithLimit(e, value, e.maxElements)
 }
 
 func EncodeStringWithLimit(e *Encoder, value string, limit uint32) (int, error) {
-	if sw, ok := e.w.(io.StringWriter); ok {
-		total, err := EncodeLen(e, uint32(len(value)), limit)
-		if err != nil {
-			return 0, err
-		}
-		n, err := sw.WriteString(value)
-		if err != nil {
-			return 0, err
-		}
-		return total + n, nil
+	total, err := EncodeLen(e, uint32(len(value)), limit)
+	if err != nil {
+		return 0, err
 	}
-
-	return EncodeByteSliceWithLimit(e, stringToBytes(value), limit)
+	n, err := io.WriteString(e.w, value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, nil
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
-	return EncodeStructSliceWithLimit[V, H](e, value, MaxElements)
+	return EncodeStructSliceWithLimit[V, H](e, value, e.maxElements)
 }
 
 func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {
+	if err := e.enterNested(); err != nil {
+		return 0, err
+	}
+	defer e.leaveNested()
 	total, err := EncodeLen(e, uint32(len(value)), limit)
 	if err != nil {
 		return 0, err
@@ -92,17 +143,21 @@ func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V,
 	return total, nil
 }
 
-func EncodeSliceOfByteSlice(e *Encoder, value [][]byte) (int, error) {
-	return EncodeSliceOfByteSliceWithLimit(e, value, MaxElements)
+func EncodeStringSlice(e *Encoder, value []string) (int, error) {
+	return EncodeStringSliceWithLimit(e, value, e.maxElements)
 }
 
-func EncodeSliceOfByteSliceWithLimit(e *Encoder, value [][]byte, limit uint32) (int, error) {
-	total, err := EncodeLen(e, uint32(len(value)), limit)
+func EncodeStringSliceWithLimit(e *Encoder, value []string, limit uint32) (int, error) {
+	valueToBytes := make([][]byte, 0, len(value))
+	for i := range value {
+		valueToBytes = append(valueToBytes, stringToBytes(value[i]))
+	}
+	total, err := EncodeLen(e, uint32(len(valueToBytes)), limit)
 	if err != nil {
 		return 0, fmt.Errorf("EncodeLen failed: %w", err)
 	}
-	for _, byteSlice := range value {
-		n, err := EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
+	for _, byteSlice := range valueToBytes {
+		n, err := EncodeByteSliceWithLimit(e, byteSlice, e.maxElements)
 		if err != nil {
 			return 0, fmt.Errorf("EncodeByteSliceWithLimit failed: %w", err)
 		}
@@ -111,19 +166,11 @@ func EncodeSliceOfByteSliceWithLimit(e *Encoder, value [][]byte, limit uint32) (
 	return total, nil
 }
 
-func EncodeStringSlice(e *Encoder, value []string) (int, error) {
-	return EncodeStringSliceWithLimit(e, value, MaxElements)
-}
-
-func EncodeStringSliceWithLimit(e *Encoder, value []string, limit uint32) (int, error) {
-	valueToBytes := make([][]byte, 0, len(value))
-	for i := range value {
-		valueToBytes = append(valueToBytes, stringToBytes(value[i]))
-	}
-	return EncodeSliceOfByteSliceWithLimit(e, valueToBytes, limit)
-}
-
 func EncodeStructArray[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
+	if err := e.enterNested(); err != nil {
+		return 0, err
+	}
+	defer e.leaveNested()
 	total := 0
 	for i := range value {
 		n, err := H(&value[i]).EncodeScale(e)
@@ -239,6 +286,10 @@ func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {
 }
 
 func EncodeOption[V any, H EncodablePtr[V]](e *Encoder, value *V) (int, error) {
+	if err := e.enterNested(); err != nil {
+		return 0, err
+	}
+	defer e.leaveNested()
 	if value == nil {
 		return EncodeBool(e, false)
 	}
