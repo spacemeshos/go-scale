@@ -8,13 +8,21 @@ import (
 	"math/bits"
 )
 
-var MaxElements uint32 = 1 << 20
+const (
+	// MaxElements is the maximum number of elements allowed in a collection if not set explicitly during encoding/decoding.
+	MaxElements uint32 = 1 << 20
 
-// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
-var ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
+	// MaxNested is the maximum nested level allowed if not set explicitly during encoding/decoding.
+	MaxNested uint = 4
+)
 
-// ErrEncodeNestedTooDeep is returned when nested level is too deep.
-var ErrEncodeNestedTooDeep = errors.New("nested level is too deep")
+var (
+	// ErrEncodeTooManyElements is returned when scale limit tag is used and collection has too many elements to encode.
+	ErrEncodeTooManyElements = errors.New("too many elements to encode in collection with scale limit set")
+
+	// ErrEncodeNestedTooDeep is returned when the depth of nested types exceeds the limit.
+	ErrEncodeNestedTooDeep = errors.New("nested level is too deep")
+)
 
 type Encodable interface {
 	EncodeScale(*Encoder) (int, error)
@@ -35,10 +43,22 @@ func WithEncodeMaxNested(nested uint) encoderOpts {
 	}
 }
 
+// WithEncodeMaxElements sets the maximum number of elements allowed in a collection.
+// The default value is 1 << 20.
+func WithEncodeMaxElements(elements uint32) encoderOpts {
+	return func(e *Encoder) {
+		e.maxElements = elements
+	}
+}
+
 // NewEncoder returns a new encoder that writes to w.
 // If w implements io.StringWriter, the returned encoder will be more efficient in encoding strings.
 func NewEncoder(w io.Writer, opts ...encoderOpts) *Encoder {
-	e := &Encoder{w: w, maxNested: 4}
+	e := &Encoder{
+		w:           w,
+		maxNested:   MaxNested,
+		maxElements: MaxElements,
+	}
 	for _, opt := range opts {
 		opt(e)
 	}
@@ -46,9 +66,10 @@ func NewEncoder(w io.Writer, opts ...encoderOpts) *Encoder {
 }
 
 type Encoder struct {
-	w         io.Writer
-	scratch   [9]byte
-	maxNested uint
+	w           io.Writer
+	scratch     [9]byte
+	maxNested   uint
+	maxElements uint32
 }
 
 func (e *Encoder) enterNested() error {
@@ -64,7 +85,7 @@ func (e *Encoder) leaveNested() {
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
-	return EncodeByteSliceWithLimit(e, value, MaxElements)
+	return EncodeByteSliceWithLimit(e, value, e.maxElements)
 }
 
 func EncodeByteSliceWithLimit(e *Encoder, value []byte, limit uint32) (int, error) {
@@ -84,7 +105,7 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 }
 
 func EncodeString(e *Encoder, value string) (int, error) {
-	return EncodeStringWithLimit(e, value, MaxElements)
+	return EncodeStringWithLimit(e, value, e.maxElements)
 }
 
 func EncodeStringWithLimit(e *Encoder, value string, limit uint32) (int, error) {
@@ -100,7 +121,7 @@ func EncodeStringWithLimit(e *Encoder, value string, limit uint32) (int, error) 
 }
 
 func EncodeStructSlice[V any, H EncodablePtr[V]](e *Encoder, value []V) (int, error) {
-	return EncodeStructSliceWithLimit[V, H](e, value, MaxElements)
+	return EncodeStructSliceWithLimit[V, H](e, value, e.maxElements)
 }
 
 func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V, limit uint32) (int, error) {
@@ -123,7 +144,7 @@ func EncodeStructSliceWithLimit[V any, H EncodablePtr[V]](e *Encoder, value []V,
 }
 
 func EncodeStringSlice(e *Encoder, value []string) (int, error) {
-	return EncodeStringSliceWithLimit(e, value, MaxElements)
+	return EncodeStringSliceWithLimit(e, value, e.maxElements)
 }
 
 func EncodeStringSliceWithLimit(e *Encoder, value []string, limit uint32) (int, error) {
@@ -136,7 +157,7 @@ func EncodeStringSliceWithLimit(e *Encoder, value []string, limit uint32) (int, 
 		return 0, fmt.Errorf("EncodeLen failed: %w", err)
 	}
 	for _, byteSlice := range valueToBytes {
-		n, err := EncodeByteSliceWithLimit(e, byteSlice, MaxElements)
+		n, err := EncodeByteSliceWithLimit(e, byteSlice, e.maxElements)
 		if err != nil {
 			return 0, fmt.Errorf("EncodeByteSliceWithLimit failed: %w", err)
 		}

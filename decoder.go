@@ -14,11 +14,13 @@ const (
 	maxUint30 = 1<<30 - 1
 )
 
-// ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
-var ErrDecodeTooManyElements = errors.New("too many elements to decode in collection with scale limit set")
+var (
+	// ErrDecodeTooManyElements is returned when scale limit tag is used and collection has too many elements to decode.
+	ErrDecodeTooManyElements = errors.New("too many elements to decode in collection with scale limit set")
 
-// ErrDecodeNestedTooDeep is returned when nested level is too deep.
-var ErrDecodeNestedTooDeep = errors.New("nested level is too deep")
+	// ErrDecodeNestedTooDeep is returned when nested level is too deep.
+	ErrDecodeNestedTooDeep = errors.New("nested level is too deep")
+)
 
 type Decodable interface {
 	DecodeScale(*Decoder) (int, error)
@@ -39,9 +41,21 @@ func WithDecodeMaxNested(nested uint) decoderOpts {
 	}
 }
 
+// WithDecodeMaxElements sets the maximum number of elements allowed in a collection.
+// The default value is 1 << 20.
+func WithDecodeMaxElements(elements uint32) decoderOpts {
+	return func(e *Decoder) {
+		e.maxElements = elements
+	}
+}
+
 // NewDecoder returns a new decoder that reads from r.
 func NewDecoder(r io.Reader, opts ...decoderOpts) *Decoder {
-	d := &Decoder{r: r, maxNested: 4}
+	d := &Decoder{
+		r:           r,
+		maxNested:   MaxNested,
+		maxElements: MaxElements,
+	}
 	for _, opt := range opts {
 		opt(d)
 	}
@@ -49,9 +63,10 @@ func NewDecoder(r io.Reader, opts ...decoderOpts) *Decoder {
 }
 
 type Decoder struct {
-	r         io.Reader
-	scratch   [9]byte
-	maxNested uint
+	r           io.Reader
+	scratch     [9]byte
+	maxNested   uint
+	maxElements uint32
 }
 
 func (d *Decoder) enterNested() error {
@@ -292,7 +307,7 @@ func DecodeStruct[V any, H DecodablePtr[V]](d *Decoder) (V, int, error) {
 }
 
 func DecodeByteSlice(d *Decoder) ([]byte, int, error) {
-	return DecodeByteSliceWithLimit(d, MaxElements)
+	return DecodeByteSliceWithLimit(d, d.maxElements)
 }
 
 func DecodeByteSliceWithLimit(d *Decoder, limit uint32) ([]byte, int, error) {
@@ -316,7 +331,7 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 }
 
 func DecodeString(d *Decoder) (string, int, error) {
-	return DecodeStringWithLimit(d, MaxElements)
+	return DecodeStringWithLimit(d, d.maxElements)
 }
 
 func DecodeStringWithLimit(d *Decoder, limit uint32) (string, int, error) {
@@ -325,7 +340,7 @@ func DecodeStringWithLimit(d *Decoder, limit uint32) (string, int, error) {
 }
 
 func DecodeStructSlice[V any, H DecodablePtr[V]](d *Decoder) ([]V, int, error) {
-	return DecodeStructSliceWithLimit[V, H](d, MaxElements)
+	return DecodeStructSliceWithLimit[V, H](d, d.maxElements)
 }
 
 func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint32) ([]V, int, error) {
@@ -354,7 +369,7 @@ func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint
 }
 
 func DecodeSliceOfByteSlice(d *Decoder) ([][]byte, int, error) {
-	return DecodeSliceOfByteSliceWithLimit(d, MaxElements)
+	return DecodeSliceOfByteSliceWithLimit(d, d.maxElements)
 }
 
 func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, error) {
@@ -380,7 +395,7 @@ func DecodeSliceOfByteSliceWithLimit(d *Decoder, limit uint32) ([][]byte, int, e
 }
 
 func DecodeStringSlice(d *Decoder) ([]string, int, error) {
-	return DecodeStringSliceWithLimit(d, MaxElements)
+	return DecodeStringSliceWithLimit(d, d.maxElements)
 }
 
 func DecodeStringSliceWithLimit(d *Decoder, limit uint32) ([]string, int, error) {
