@@ -11,8 +11,8 @@ test:
 
 install:
 	go mod download
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.52.0
-	go install gotest.tools/gotestsum@v1.9.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.53.3
+	go install gotest.tools/gotestsum@v1.10.0
 	go install honnef.co/go/tools/cmd/staticcheck@v0.4.3
 .PHONY: install
 
