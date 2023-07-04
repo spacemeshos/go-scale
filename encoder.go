@@ -278,7 +278,7 @@ func EncodeCompact64(e *Encoder, v uint64) (int, error) {
 	return encodeBigUint(e, uint64(v))
 }
 
-func EncodeLen(e *Encoder, v uint32, limit uint32) (int, error) {
+func EncodeLen(e *Encoder, v, limit uint32) (int, error) {
 	if v > limit {
 		return 0, fmt.Errorf("%w: %d", ErrEncodeTooManyElements, limit)
 	}

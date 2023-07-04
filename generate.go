@@ -130,7 +130,7 @@ func getAction(tm temp, action int) string {
 	panic("unreachable")
 }
 
-func Generate(pkg string, filepath string, objs ...any) error {
+func Generate(pkg, filepath string, objs ...any) error {
 	buf := bytes.NewBuffer(nil)
 	ctx := &genContext{Package: pkg, Imported: generateImports(objs...)}
 
