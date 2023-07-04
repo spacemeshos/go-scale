@@ -130,7 +130,7 @@ func getAction(tm temp, action int) string {
 	panic("unreachable")
 }
 
-func Generate(pkg string, filepath string, objs ...interface{}) error {
+func Generate(pkg string, filepath string, objs ...any) error {
 	buf := bytes.NewBuffer(nil)
 	ctx := &genContext{Package: pkg, Imported: generateImports(objs...)}
 
@@ -155,7 +155,7 @@ func Generate(pkg string, filepath string, objs ...interface{}) error {
 	return os.WriteFile(filepath, data, 0o664)
 }
 
-func generateImports(objs ...interface{}) map[string]struct{} {
+func generateImports(objs ...any) map[string]struct{} {
 	rst := map[string]struct{}{}
 	for _, obj := range objs {
 		typ := reflect.TypeOf(obj)
@@ -228,7 +228,7 @@ func builtin(typ reflect.Type) bool {
 	return typ.PkgPath() == ""
 }
 
-func generateType(w io.Writer, gc *genContext, obj interface{}) error {
+func generateType(w io.Writer, gc *genContext, obj any) error {
 	typ := reflect.TypeOf(obj)
 	tc := &typeContext{
 		Name:          typ.Name(),
