@@ -74,3 +74,22 @@ jobs:
         with:
           report_paths: "**/unit-tests.xml"
           annotate_only: true
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up go
+        uses: actions/setup-go@v4
+        with:
+          check-latest: true
+          go-version-file: "go.mod"
+      - name: setup env
+        run: make install
+      - name: test coverage
+        run: make cover
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
