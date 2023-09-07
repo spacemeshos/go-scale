@@ -1,8 +1,5 @@
 name: Go
 
-env:
-  go-version: "1.19"
-
 on:
   pull_request:
   push:
@@ -17,7 +14,8 @@ jobs:
       - name: set up go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.go-version }}
+          check-latest: true
+          go-version-file: "go.mod"
       - name: fmt, tidy
         run: |
           make install
@@ -35,7 +33,8 @@ jobs:
       - name: set up go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.go-version }}
+          check-latest: true
+          go-version-file: "go.mod"
       - name: setup env
         run: make install
       - name: lint
@@ -57,7 +56,8 @@ jobs:
       - name: set up go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.go-version }}
+          check-latest: true
+          go-version-file: "go.mod"
       - name: setup env
         run: make install
       - name: Clear test cache
