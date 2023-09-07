@@ -55,7 +55,7 @@ lint-github-action:
 .PHONY: lint-github-action
 
 cover:
-	go test -coverprofile=cover.out -timeout 0 -p 1 $(UNIT_TESTS)
+	go test -coverprofile=cover.out -timeout 0 -p 1 -coverpkg=./... $(UNIT_TESTS)
 .PHONY: cover
 
 staticcheck:
