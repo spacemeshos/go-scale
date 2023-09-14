@@ -356,14 +356,13 @@ func DecodeStructSliceWithLimit[V any, H DecodablePtr[V]](d *Decoder, limit uint
 		return nil, total, nil
 	}
 
-	value := make([]V, 0, lth)
+	value := make([]V, lth)
 	for i := uint32(0); i < lth; i++ {
-		val, n, err := DecodeStruct[V, H](d)
+		n, err := H(&value[i]).DecodeScale(d)
 		total += n
 		if err != nil {
 			return nil, total, err
 		}
-		value = append(value, val)
 	}
 	return value, total, nil
 }
