@@ -311,3 +311,17 @@ func EncodeStruct[V any, H EncodablePtr[V]](e *Encoder, value V) (int, error) {
 	}
 	return n, nil
 }
+
+// LenSize returns the size in bytes required to encode a length value.
+func LenSize(v uint32) uint32 {
+	switch {
+	case v <= (1<<6 - 1):
+		return 1
+	case v <= (1<<14 - 1):
+		return 2
+	case v <= (1<<30 - 1):
+		return 4
+	default:
+		return 5
+	}
+}
