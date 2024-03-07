@@ -33,3 +33,29 @@ func TestCompactBigInt(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, encoded, rst)
 }
+
+func TestLenSize(t *testing.T) {
+	for _, l := range []uint32{
+		0,
+		1,
+		16,
+		64,
+		65,
+		1<<14 - 1,
+		1 << 14,
+		1 << 20,
+		1 << 30,
+		1 << 31,
+		1<<32 - 1,
+	} {
+		var b bytes.Buffer
+		n, err := EncodeLen(NewEncoder(&b), l, 1<<32-1)
+		require.NoError(t, err)
+		require.Equal(t, uint32(b.Len()), LenSize(l))
+		require.Equal(t, uint32(n), LenSize(l))
+		decoded, n, err := DecodeLen(NewDecoder(&b), 1<<32-1)
+		require.NoError(t, err)
+		require.Equal(t, l, decoded)
+		require.Equal(t, uint32(n), LenSize(l))
+	}
+}
