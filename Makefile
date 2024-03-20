@@ -1,3 +1,7 @@
+GOLANGCI_LINT_VERSION := v1.57.0
+STATICCHECK_VERSION := v0.4.7
+GOTESTSUM_VERSION := v1.11.0
+
 all: build test
 .PHONY: all
 
@@ -11,9 +15,9 @@ test:
 
 install:
 	go mod download
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.54.2
-	go install gotest.tools/gotestsum@v1.10.1
-	go install honnef.co/go/tools/cmd/staticcheck@v0.4.5
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_LINT_VERSION)
+	go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION)
+	go install honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)
 .PHONY: install
 
 tidy:

@@ -143,7 +143,7 @@ func Generate(pkg, filepath string, objs ...any) error {
 	}
 
 	for _, obj := range objs {
-		if err := generateType(buf, ctx, obj); err != nil {
+		if err := generateType(buf, obj); err != nil {
 			return err
 		}
 	}
@@ -228,7 +228,7 @@ func builtin(typ reflect.Type) bool {
 	return typ.PkgPath() == ""
 }
 
-func generateType(w io.Writer, gc *genContext, obj any) error {
+func generateType(w io.Writer, obj any) error {
 	typ := reflect.TypeOf(obj)
 	tc := &typeContext{
 		Name:          typ.Name(),
@@ -236,10 +236,10 @@ func generateType(w io.Writer, gc *genContext, obj any) error {
 		ParentPackage: typ.PkgPath(),
 		TypeName:      typ.Name(),
 	}
-	if err := executeAction(encode, w, gc, tc); err != nil {
+	if err := executeAction(encode, w, tc); err != nil {
 		return err
 	}
-	if err := executeAction(decode, w, gc, tc); err != nil {
+	if err := executeAction(decode, w, tc); err != nil {
 		return err
 	}
 	return nil
@@ -289,7 +289,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
 		if maxElements == 0 {
-			return scaleType{}, fmt.Errorf("strings must have max scale tag")
+			return scaleType{}, errors.New("strings must have max scale tag")
 		}
 		return scaleType{
 			Name:           "StringWithLimit",
@@ -312,18 +312,18 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 	case reflect.Slice:
 		if field.Type.Elem().Kind() == reflect.Slice && field.Type.Elem().Elem().Kind() == reflect.Uint8 {
 			// [][]byte
-			return scaleType{}, fmt.Errorf("nested slices are not supported")
+			return scaleType{}, errors.New("nested slices are not supported")
 		}
 		if field.Type.Elem().Kind() == reflect.String {
 			// []string
-			return scaleType{}, fmt.Errorf("string slices are not supported")
+			return scaleType{}, errors.New("string slices are not supported")
 		}
 		maxElements, err := getMaxElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
 		if maxElements == 0 {
-			return scaleType{}, fmt.Errorf("slices must have max scale tag")
+			return scaleType{}, errors.New("slices must have max scale tag")
 		}
 		if field.Type.Elem().Kind() == reflect.Uint8 {
 			return scaleType{Name: "ByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
@@ -388,7 +388,7 @@ func getTemplate(stype scaleType) temp {
 	}
 }
 
-func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) error {
+func executeAction(action int, w io.Writer, tc *typeContext) error {
 	typ := tc.Type
 
 	tpl, err := template.New("").Parse(getAction(start, action))
@@ -413,7 +413,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		tctx := &typeContext{
 			Name:           field.Name,
 			Type:           field.Type,
-			TypeName:       fullTypeName(gc, tc, field.Type),
+			TypeName:       fullTypeName(tc, field.Type),
 			ScaleType:      scaleType.Name,
 			ScaleTypeArgs:  scaleType.Args,
 			EncodeModifier: scaleType.EncodeModifier,
@@ -422,7 +422,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 		}
 
 		if strings.HasPrefix(scaleType.Name, "StructSlice") {
-			tctx.TypeInfo = "[" + fullTypeName(gc, tc, field.Type.Elem()) + "]"
+			tctx.TypeInfo = "[" + fullTypeName(tc, field.Type.Elem()) + "]"
 		} else if strings.Contains(scaleType.Name, "Struct") || strings.Contains(scaleType.Name, "Option") {
 			tctx.TypeInfo = fmt.Sprintf("[%v]", tctx.TypeName)
 		}
@@ -440,7 +440,7 @@ func executeAction(action int, w io.Writer, gc *genContext, tc *typeContext) err
 	return nil
 }
 
-func fullTypeName(gc *genContext, tc *typeContext, typ reflect.Type) string {
+func fullTypeName(tc *typeContext, typ reflect.Type) string {
 	pkg := typ.PkgPath()
 	name := typ.Name()
 	str := typ.String()
