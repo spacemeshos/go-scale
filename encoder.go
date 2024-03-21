@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	// MaxElements is the maximum number of elements allowed in a collection if not set explicitly during encoding/decoding.
+	// MaxElements is the maximum number of elements allowed in a collection if not set explicitly during
+	// encoding/decoding.
 	MaxElements uint32 = 1 << 20
 
 	// MaxNested is the maximum nested level allowed if not set explicitly during encoding/decoding.
@@ -25,7 +26,7 @@ var (
 )
 
 type Encodable interface {
-	EncodeScale(*Encoder) (int, error)
+	EncodeScale(enc *Encoder) (int, error)
 }
 
 type EncodablePtr[B any] interface {

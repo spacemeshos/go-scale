@@ -23,7 +23,7 @@ var (
 )
 
 type Decodable interface {
-	DecodeScale(*Decoder) (int, error)
+	DecodeScale(dec *Decoder) (int, error)
 }
 
 type DecodablePtr[B any] interface {
@@ -118,7 +118,7 @@ func DecodeCompact8(d *Decoder) (uint8, int, error) {
 		}
 		value = uint8(rst)
 	default:
-		return 0, 0, fmt.Errorf("value will overflow uint8")
+		return 0, 0, errors.New("value will overflow uint8")
 	}
 	return value, total, nil
 }
@@ -161,7 +161,7 @@ func DecodeCompact16(d *Decoder) (uint16, int, error) {
 		}
 		value = uint16(rst)
 	default:
-		return 0, 0, fmt.Errorf("value will overflow uint16")
+		return 0, 0, errors.New("value will overflow uint16")
 	}
 	return value, total, nil
 }
