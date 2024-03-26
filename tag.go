@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-// GetMaxElementsFromValue returns the max number of elements for the specified field in
+// MaxScaleElementsForField returns the max number of elements for the specified field in
 // the struct passed as the v argument based on the 'scale' tag. It returns an error if v
 // is not a structure, if max is not specified for the field, the field doesn't exist or
 // there's a problem parsing the tag.
-func GetMaxElementsFromValue(v any, fieldName string) (uint32, error) {
+func MaxScaleElementsForField(v any, fieldName string) (uint32, error) {
 	typ := reflect.TypeOf(v)
 	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
@@ -24,7 +24,7 @@ func GetMaxElementsFromValue(v any, fieldName string) (uint32, error) {
 	if !found {
 		return 0, fmt.Errorf("unknown field %q in %T", fieldName, v)
 	}
-	maxElements, err := getMaxElements(f.Tag)
+	maxElements, err := maxScaleElements(f.Tag)
 	if err != nil {
 		return 0, fmt.Errorf("error getting field tag %q in %T: %w", fieldName, v, err)
 	}
@@ -34,24 +34,24 @@ func GetMaxElementsFromValue(v any, fieldName string) (uint32, error) {
 	return maxElements, nil
 }
 
-// GetMaxElements is a generic version of GetMaxElementsFromValue that uses the specified
+// MaxScaleElements is a generic version of GetMaxElementsFromValue that uses the specified
 // type instead of a struct value.
-func GetMaxElements[T any](fieldName string) (uint32, error) {
+func MaxScaleElements[T any](fieldName string) (uint32, error) {
 	var v T
-	return GetMaxElementsFromValue(v, fieldName)
+	return MaxScaleElementsForField(v, fieldName)
 }
 
 // MustGetMaxElements is the same as GetMaxElements, but returns just the max tag value
 // and panics in case of an error.
 func MustGetMaxElements[T any](fieldName string) uint32 {
-	maxElements, err := GetMaxElements[T](fieldName)
+	maxElements, err := MaxScaleElements[T](fieldName)
 	if err != nil {
 		panic(err)
 	}
 	return maxElements
 }
 
-func getMaxElements(tag reflect.StructTag) (uint32, error) {
+func maxScaleElements(tag reflect.StructTag) (uint32, error) {
 	scaleTagValue, exists := tag.Lookup("scale")
 	if !exists || scaleTagValue == "" {
 		return 0, nil

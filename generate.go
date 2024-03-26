@@ -283,7 +283,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 	case reflect.Bool:
 		return scaleType{Name: "Bool"}, nil
 	case reflect.String:
-		maxElements, err := getMaxElements(field.Tag)
+		maxElements, err := maxScaleElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
@@ -317,7 +317,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 			// []string
 			return scaleType{}, errors.New("string slices are not supported")
 		}
-		maxElements, err := getMaxElements(field.Tag)
+		maxElements, err := maxScaleElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
