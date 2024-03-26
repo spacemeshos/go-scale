@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -284,7 +283,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 	case reflect.Bool:
 		return scaleType{Name: "Bool"}, nil
 	case reflect.String:
-		maxElements, err := getMaxElements(field.Tag)
+		maxElements, err := maxScaleElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
@@ -318,7 +317,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 			// []string
 			return scaleType{}, errors.New("string slices are not supported")
 		}
-		maxElements, err := getMaxElements(field.Tag)
+		maxElements, err := maxScaleElements(field.Tag)
 		if err != nil {
 			return scaleType{}, fmt.Errorf("scale tag has incorrect max value: %w", err)
 		}
@@ -336,41 +335,6 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 		return scaleType{Name: "StructArray"}, nil
 	}
 	return scaleType{}, fmt.Errorf("type %v is not supported", field.Type.Kind())
-}
-
-func getMaxElements(tag reflect.StructTag) (uint32, error) {
-	scaleTagValue, exists := tag.Lookup("scale")
-	if !exists || scaleTagValue == "" {
-		return 0, nil
-	}
-	if scaleTagValue == "" {
-		return 0, errors.New("scale tag is not defined")
-	}
-	pairs := strings.Split(scaleTagValue, ",")
-	if len(pairs) == 0 {
-		return 0, errors.New("no max value found in scale tag")
-	}
-	var maxElementsStr string
-	for _, pair := range pairs {
-		pair = strings.TrimSpace(pair)
-		data := strings.Split(pair, "=")
-		if len(data) < 2 {
-			continue
-		}
-		if data[0] != "max" {
-			continue
-		}
-		maxElementsStr = strings.TrimSpace(data[1])
-		break
-	}
-	if maxElementsStr == "" {
-		return 0, errors.New("no max value found in scale tag")
-	}
-	maxElements, err := strconv.Atoi(maxElementsStr)
-	if err != nil {
-		return 0, fmt.Errorf("parsing max value: %w", err)
-	}
-	return uint32(maxElements), nil
 }
 
 func getTemplate(stype scaleType) temp {
