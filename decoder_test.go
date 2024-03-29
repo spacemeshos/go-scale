@@ -39,6 +39,12 @@ func testEncode(tb testing.TB, value any) []byte {
 		_, err = EncodeCompact64(enc, val)
 	case []byte:
 		_, err = EncodeByteSlice(enc, val)
+	case []uint16:
+		_, err = EncodeUint16Slice(enc, val)
+	case []uint32:
+		_, err = EncodeUint32Slice(enc, val)
+	case []uint64:
+		_, err = EncodeUint64Slice(enc, val)
 	case string:
 		_, err = EncodeString(enc, val)
 	case []string:
@@ -65,6 +71,12 @@ func expectEqual(tb testing.TB, value any, r io.Reader) {
 		rst, _, err = DecodeCompact64(dec)
 	case []byte:
 		rst, _, err = DecodeByteSlice(dec)
+	case []uint16:
+		rst, _, err = DecodeUint16Slice(dec)
+	case []uint32:
+		rst, _, err = DecodeUint32Slice(dec)
+	case []uint64:
+		rst, _, err = DecodeUint64Slice(dec)
 	case string:
 		rst, _, err = DecodeString(dec)
 	case []string:
@@ -106,6 +118,18 @@ func TestReadFull(t *testing.T) {
 		{
 			desc:   "string slice",
 			expect: []string{"qwe123", "dsa456"},
+		},
+		{
+			desc:   "uint16 slice",
+			expect: []uint16{0, 1, 2, math.MaxUint8, math.MaxUint16},
+		},
+		{
+			desc:   "uint32 slice",
+			expect: []uint32{0, 1, 2, math.MaxUint8, math.MaxUint16, math.MaxUint32},
+		},
+		{
+			desc:   "uint64 slice",
+			expect: []uint64{0, 1, 2, math.MaxUint32, math.MaxUint64},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {

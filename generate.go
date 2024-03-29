@@ -17,7 +17,7 @@ const (
 
 	// nolint
 	package {{ .Package }}
-	
+
 	import (
 		"github.com/spacemeshos/go-scale"
 		{{ range $pkg, $short := .Imported }}"{{ $pkg }}"
@@ -326,6 +326,17 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 		}
 		if field.Type.Elem().Kind() == reflect.Uint8 {
 			return scaleType{Name: "ByteSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
+		}
+		if field.Type.Elem().Name() == "uint16" {
+			return scaleType{Name: "Uint16SliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
+		}
+		// Note: `field.Type.Elem().Kind() == reflect.Uint32` catches things like
+		// type Foo uint32.
+		if field.Type.Elem().Name() == "uint32" {
+			return scaleType{Name: "Uint32SliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
+		}
+		if field.Type.Elem().Name() == "uint64" {
+			return scaleType{Name: "Uint64SliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 		}
 		return scaleType{Name: "StructSliceWithLimit", Args: fmt.Sprintf(", %d", maxElements)}, nil
 	case reflect.Array:

@@ -2,6 +2,7 @@ package scale
 
 import (
 	"bytes"
+	"encoding/hex"
 	"math"
 	"testing"
 
@@ -128,6 +129,32 @@ func uint64TestCases() []compactTestCase[uint64] {
 	}
 }
 
+func mustDecodeHex(hexStr string) []byte {
+	b, err := hex.DecodeString(hexStr)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func uint16SliceTestCases() []compactTestCase[[]uint16] {
+	return []compactTestCase[[]uint16]{
+		{[]uint16{4, 8, 15, 16, 23, 42}, mustDecodeHex("18040008000f00100017002a00")},
+	}
+}
+
+func uint32SliceTestCases() []compactTestCase[[]uint32] {
+	return []compactTestCase[[]uint32]{
+		{[]uint32{4, 8, 15, 16, 23, 42}, mustDecodeHex("1804000000080000000f00000010000000170000002a000000")},
+	}
+}
+
+func uint64SliceTestCases() []compactTestCase[[]uint64] {
+	return []compactTestCase[[]uint64]{
+		{[]uint64{4, 8, 42}, mustDecodeHex("0c040000000000000008000000000000002a00000000000000")},
+	}
+}
+
 func encodeTest[T any](t *testing.T, value T, expect []byte) {
 	buf := bytes.NewBuffer(nil)
 	enc := NewEncoder(buf)
@@ -141,6 +168,14 @@ func encodeTest[T any](t *testing.T, value T, expect []byte) {
 		_, err = EncodeCompact32(enc, typed)
 	case uint64:
 		_, err = EncodeCompact64(enc, typed)
+	case []uint16:
+		_, err = EncodeUint16Slice(enc, typed)
+	case []uint32:
+		_, err = EncodeUint32Slice(enc, typed)
+	case []uint64:
+		_, err = EncodeUint64Slice(enc, typed)
+	default:
+		t.Fatal("unsupported type")
 	}
 	require.NoError(t, err)
 	require.Equal(t, expect, buf.Bytes())
@@ -170,6 +205,27 @@ func TestEncodeCompactIntegers(t *testing.T) {
 	})
 	t.Run("uint64", func(t *testing.T) {
 		for _, tc := range uint64TestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
+	t.Run("[]uint16", func(t *testing.T) {
+		for _, tc := range uint16SliceTestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
+	t.Run("[]uint32", func(t *testing.T) {
+		for _, tc := range uint32SliceTestCases() {
+			t.Run("", func(t *testing.T) {
+				encodeTest(t, tc.value, tc.expect)
+			})
+		}
+	})
+	t.Run("[]uint64", func(t *testing.T) {
+		for _, tc := range uint64SliceTestCases() {
 			t.Run("", func(t *testing.T) {
 				encodeTest(t, tc.value, tc.expect)
 			})
