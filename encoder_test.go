@@ -155,7 +155,14 @@ func uint32PtrTestCases() []compactTestCase[*uint32] {
 		{newInteger[uint32](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
 		{newInteger[uint32](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
 		{newInteger[uint32](maxUint30), []byte{1, 0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
-		{newInteger[uint32](math.MaxUint32), []byte{1, 0b0000_0011, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+		{newInteger[uint32](math.MaxUint32), []byte{
+			1,
+			0b0000_0011,
+			0b1111_1111,
+			0b1111_1111,
+			0b1111_1111,
+			0b1111_1111,
+		}},
 	}
 }
 
@@ -164,7 +171,14 @@ func uint64PtrTestCases() []compactTestCase[*uint64] {
 		{nil, []byte{0}},
 		{newInteger[uint64](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
 		{newInteger[uint64](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
-		{newInteger[uint64](math.MaxUint32), []byte{1, 0b0000_0011, 0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+		{newInteger[uint64](math.MaxUint32), []byte{
+			1,
+			0b0000_0011,
+			0b1111_1111,
+			0b1111_1111,
+			0b1111_1111,
+			0b1111_1111,
+		}},
 		{newInteger[uint64](math.MaxUint64), []byte{
 			1,
 			0b0001_0011,
@@ -176,10 +190,10 @@ func uint64PtrTestCases() []compactTestCase[*uint64] {
 			0b1111_1111,
 			0b1111_1111,
 			0b1111_1111,
-		},
-		},
+		}},
 	}
 }
+
 func mustDecodeHex(hexStr string) []byte {
 	b, err := hex.DecodeString(hexStr)
 	if err != nil {
