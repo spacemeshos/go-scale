@@ -1,7 +1,6 @@
 package scale
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -346,12 +345,12 @@ func DecodeUint16SliceWithLimit(d *Decoder, limit uint32) ([]uint16, int, error)
 	values := make([]uint16, lth)
 
 	for i := uint32(0); i < lth; i++ {
-		n, err := d.read(d.scratch[:2])
+		v, n, err := DecodeCompact16(d)
 		if err != nil {
 			return nil, 0, err
 		}
 		total += n
-		values[i] = binary.LittleEndian.Uint16(d.scratch[:2])
+		values[i] = v
 	}
 
 	return values, total, nil
@@ -372,12 +371,12 @@ func DecodeUint32SliceWithLimit(d *Decoder, limit uint32) ([]uint32, int, error)
 	values := make([]uint32, lth)
 
 	for i := uint32(0); i < lth; i++ {
-		n, err := d.read(d.scratch[:4])
+		v, n, err := DecodeCompact32(d)
 		if err != nil {
 			return nil, 0, err
 		}
 		total += n
-		values[i] = binary.LittleEndian.Uint32(d.scratch[:4])
+		values[i] = v
 	}
 
 	return values, total, nil
@@ -398,12 +397,12 @@ func DecodeUint64SliceWithLimit(d *Decoder, limit uint32) ([]uint64, int, error)
 	values := make([]uint64, lth)
 
 	for i := uint32(0); i < lth; i++ {
-		n, err := d.read(d.scratch[:8])
+		v, n, err := DecodeCompact64(d)
 		if err != nil {
 			return nil, 0, err
 		}
 		total += n
-		values[i] = binary.LittleEndian.Uint64(d.scratch[:8])
+		values[i] = v
 	}
 
 	return values, total, nil

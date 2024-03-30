@@ -139,19 +139,19 @@ func mustDecodeHex(hexStr string) []byte {
 
 func uint16SliceTestCases() []compactTestCase[[]uint16] {
 	return []compactTestCase[[]uint16]{
-		{[]uint16{4, 8, 15, 16, 23, 42}, mustDecodeHex("18040008000f00100017002a00")},
+		{[]uint16{4, 15, 23, math.MaxUint16}, mustDecodeHex("10103c5cfeff0300")},
 	}
 }
 
 func uint32SliceTestCases() []compactTestCase[[]uint32] {
 	return []compactTestCase[[]uint32]{
-		{[]uint32{4, 8, 15, 16, 23, 42}, mustDecodeHex("1804000000080000000f00000010000000170000002a000000")},
+		{[]uint32{4, 15, 23, math.MaxUint32}, mustDecodeHex("10103c5c03ffffffff")},
 	}
 }
 
 func uint64SliceTestCases() []compactTestCase[[]uint64] {
 	return []compactTestCase[[]uint64]{
-		{[]uint64{4, 8, 42}, mustDecodeHex("0c040000000000000008000000000000002a00000000000000")},
+		{[]uint64{4, 15, 23, math.MaxUint64}, mustDecodeHex("10103c5c13ffffffffffffffff")},
 	}
 }
 

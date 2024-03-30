@@ -115,10 +115,11 @@ func EncodeUint16SliceWithLimit(e *Encoder, value []uint16, limit uint32) (int, 
 		return 0, err
 	}
 	for _, v := range value {
-		scratch := e.scratch[:2]
-		binary.LittleEndian.PutUint16(scratch, v)
-		e.w.Write(scratch)
-		total += 2
+		n, err := EncodeCompact16(e, v)
+		if err != nil {
+			return 0, err
+		}
+		total += n
 	}
 
 	return total, nil
@@ -134,10 +135,11 @@ func EncodeUint32SliceWithLimit(e *Encoder, value []uint32, limit uint32) (int, 
 		return 0, err
 	}
 	for _, v := range value {
-		scratch := e.scratch[:4]
-		binary.LittleEndian.PutUint32(scratch, v)
-		e.w.Write(scratch)
-		total += 4
+		n, err := EncodeCompact32(e, v)
+		if err != nil {
+			return 0, err
+		}
+		total += n
 	}
 
 	return total, nil
@@ -153,10 +155,11 @@ func EncodeUint64SliceWithLimit(e *Encoder, value []uint64, limit uint32) (int, 
 		return 0, err
 	}
 	for _, v := range value {
-		scratch := e.scratch[:8]
-		binary.LittleEndian.PutUint64(scratch, v)
-		e.w.Write(scratch)
-		total += 8
+		n, err := EncodeCompact64(e, v)
+		if err != nil {
+			return 0, err
+		}
+		total += n
 	}
 
 	return total, nil
