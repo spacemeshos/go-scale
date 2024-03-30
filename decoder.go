@@ -523,3 +523,55 @@ func DecodeOption[V any, H DecodablePtr[V]](d *Decoder) (*V, int, error) {
 	}
 	return &empty, total + n, nil
 }
+
+func DecodeBytePtr(d *Decoder) (*byte, int, error) {
+	exists, total, err := DecodeBool(d)
+	if !exists || err != nil {
+		return nil, total, err
+	}
+
+	v, n, err := DecodeByte(d)
+	if err != nil {
+		return nil, 0, err
+	}
+	return &v, total + n, nil
+}
+
+func DecodeCompact16Ptr(d *Decoder) (*uint16, int, error) {
+	exists, total, err := DecodeBool(d)
+	if !exists || err != nil {
+		return nil, total, err
+	}
+
+	v, n, err := DecodeCompact16(d)
+	if err != nil {
+		return nil, 0, err
+	}
+	return &v, total + n, nil
+}
+
+func DecodeCompact32Ptr(d *Decoder) (*uint32, int, error) {
+	exists, total, err := DecodeBool(d)
+	if !exists || err != nil {
+		return nil, total, err
+	}
+
+	v, n, err := DecodeCompact32(d)
+	if err != nil {
+		return nil, 0, err
+	}
+	return &v, total + n, nil
+}
+
+func DecodeCompact64Ptr(d *Decoder) (*uint64, int, error) {
+	exists, total, err := DecodeBool(d)
+	if !exists || err != nil {
+		return nil, total, err
+	}
+
+	v, n, err := DecodeCompact64(d)
+	if err != nil {
+		return nil, 0, err
+	}
+	return &v, total + n, nil
+}
