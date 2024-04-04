@@ -136,7 +136,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		rtype := reflect.TypeOf(Foo{})
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
-		require.Equal(t, "BytePtr", scaleT.Name)
+		require.Equal(t, "Compact8Ptr", scaleT.Name)
 	})
 	t.Run("*newU8 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -157,7 +157,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		rtype := reflect.TypeOf(Foo{})
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
-		require.Equal(t, "BytePtr", scaleT.Name)
+		require.Equal(t, "Compact8Ptr", scaleT.Name)
 	})
 	t.Run("*uint16", func(t *testing.T) {
 		type Foo struct {

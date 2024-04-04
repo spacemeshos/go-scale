@@ -309,7 +309,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 		return scaleType{Name: "Object"}, nil
 	case reflect.Ptr:
 		if field.Type.Elem().Kind() == reflect.Uint8 && !field.Type.Elem().Implements(encodableType) {
-			return scaleType{Name: "BytePtr"}, nil
+			return scaleType{Name: "Compact8Ptr"}, nil
 		}
 		if field.Type.Elem().Kind() == reflect.Uint16 && !field.Type.Elem().Implements(encodableType) {
 			return scaleType{Name: "Compact16Ptr"}, nil

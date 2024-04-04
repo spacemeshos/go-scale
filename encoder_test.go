@@ -129,33 +129,34 @@ func uint64TestCases() []compactTestCase[uint64] {
 	}
 }
 
-func newInteger[T ~uint8 | ~uint16 | ~uint32 | ~uint64](v T) *T {
+func intPtr[T ~uint8 | ~uint16 | ~uint32 | ~uint64](v T) *T {
 	return &v
 }
 
 func uint8PtrTestCases() []compactTestCase[*uint8] {
 	return []compactTestCase[*uint8]{
 		{nil, []byte{0}},
-		{newInteger[uint8](1), []byte{1, 1}},
-		{newInteger[uint8](math.MaxUint8), []byte{1, math.MaxUint8}},
+		{intPtr[uint8](1), []byte{1, 0b0000_0100}},
+		{intPtr[uint8](maxUint6), []byte{1, 0b1111_1100}},
+		{intPtr[uint8](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
 	}
 }
 
 func uint16PtrTestCases() []compactTestCase[*uint16] {
 	return []compactTestCase[*uint16]{
 		{nil, []byte{0}},
-		{newInteger[uint16](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
-		{newInteger[uint16](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
+		{intPtr[uint16](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
+		{intPtr[uint16](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
 	}
 }
 
 func uint32PtrTestCases() []compactTestCase[*uint32] {
 	return []compactTestCase[*uint32]{
 		{nil, []byte{0}},
-		{newInteger[uint32](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
-		{newInteger[uint32](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
-		{newInteger[uint32](maxUint30), []byte{1, 0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
-		{newInteger[uint32](math.MaxUint32), []byte{
+		{intPtr[uint32](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
+		{intPtr[uint32](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
+		{intPtr[uint32](maxUint30), []byte{1, 0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111}},
+		{intPtr[uint32](math.MaxUint32), []byte{
 			1,
 			0b0000_0011,
 			0b1111_1111,
@@ -169,9 +170,9 @@ func uint32PtrTestCases() []compactTestCase[*uint32] {
 func uint64PtrTestCases() []compactTestCase[*uint64] {
 	return []compactTestCase[*uint64]{
 		{nil, []byte{0}},
-		{newInteger[uint64](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
-		{newInteger[uint64](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
-		{newInteger[uint64](math.MaxUint32), []byte{
+		{intPtr[uint64](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
+		{intPtr[uint64](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
+		{intPtr[uint64](math.MaxUint32), []byte{
 			1,
 			0b0000_0011,
 			0b1111_1111,
@@ -179,7 +180,7 @@ func uint64PtrTestCases() []compactTestCase[*uint64] {
 			0b1111_1111,
 			0b1111_1111,
 		}},
-		{newInteger[uint64](math.MaxUint64), []byte{
+		{intPtr[uint64](math.MaxUint64), []byte{
 			1,
 			0b0001_0011,
 			0b1111_1111,
@@ -234,7 +235,7 @@ func encodeTest[T any](t *testing.T, value T, expect []byte) {
 	case uint64:
 		_, err = EncodeCompact64(enc, typed)
 	case *uint8:
-		_, err = EncodeBytePtr(enc, typed)
+		_, err = EncodeCompact8Ptr(enc, typed)
 	case *uint16:
 		_, err = EncodeCompact16Ptr(enc, typed)
 	case *uint32:

@@ -14,10 +14,10 @@
 | uint16      | compact u16                                                        |
 | uint32      | compact u32                                                        |
 | uint34      | compact u64                                                        |
-| *uint8      | Option (0 for nil, 1 otherwise), followed by fixed-width u8        | `&255 -> 01FF`                                        |
+| *uint8      | Option (0 for nil, 1 otherwise), followed by compact u8            | `&64 -> 01FC`; `&255 -> 01FD03`                       |
 | *uint16     | Option (0 for nil, 1 otherwise), followed by compact u16           | `&255 -> 01FD03`                                      |
 | *uint32     | Option (0 for nil, 1 otherwise), followed by compact u32           | `&255 -> 01FD03`                                      |
-| *uint34     | Option (0 for nil, 1 otherwise), followed by compact u64           | `&255 -> 01FD03`                                      |
+| *uint64     | Option (0 for nil, 1 otherwise), followed by compact u64           | `&255 -> 01FD03`                                      |
 | []uint16    | length prefixed (compact u32) followed by compact u16s             | `[4, 15, 23, u16::MAX] -> 10103C5CFEFF0300`           |
 | []uint32    | length prefixed (compact u32) followed by compact u32s             | `[4, 15, 23, u32::MAX] -> 10103C5C03FFFFFFFF`         |
 | []uint64    | length prefixed (compact u32) followed by compact u64s             | `[4, 15, 23, u64::MAX] -> 10103C5C13FFFFFFFFFFFFFFFF` |

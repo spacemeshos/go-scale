@@ -524,13 +524,13 @@ func DecodeOption[V any, H DecodablePtr[V]](d *Decoder) (*V, int, error) {
 	return &empty, total + n, nil
 }
 
-func DecodeBytePtr(d *Decoder) (*byte, int, error) {
+func DecodeCompact8Ptr(d *Decoder) (*uint8, int, error) {
 	exists, total, err := DecodeBool(d)
 	if !exists || err != nil {
 		return nil, total, err
 	}
 
-	v, n, err := DecodeByte(d)
+	v, n, err := DecodeCompact8(d)
 	if err != nil {
 		return nil, 0, err
 	}

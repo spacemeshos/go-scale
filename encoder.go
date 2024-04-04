@@ -365,7 +365,7 @@ func EncodeOption[V any, H EncodablePtr[V]](e *Encoder, value *V) (int, error) {
 	return total + n, nil
 }
 
-func EncodeBytePtr(e *Encoder, value *byte) (int, error) {
+func EncodeCompact8Ptr(e *Encoder, value *uint8) (int, error) {
 	if value == nil {
 		return EncodeBool(e, false)
 	}
@@ -373,7 +373,7 @@ func EncodeBytePtr(e *Encoder, value *byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	n, err := EncodeByte(e, *value)
+	n, err := EncodeCompact8(e, *value)
 	if err != nil {
 		return 0, err
 	}
