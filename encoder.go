@@ -105,6 +105,66 @@ func EncodeByteArray(e *Encoder, value []byte) (int, error) {
 	return e.w.Write(value)
 }
 
+func EncodeUint16Slice(e *Encoder, value []uint16) (int, error) {
+	return EncodeUint16SliceWithLimit(e, value, e.maxElements)
+}
+
+func EncodeUint16SliceWithLimit(e *Encoder, value []uint16, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
+	if err != nil {
+		return 0, err
+	}
+	for _, v := range value {
+		n, err := EncodeCompact16(e, v)
+		if err != nil {
+			return 0, err
+		}
+		total += n
+	}
+
+	return total, nil
+}
+
+func EncodeUint32Slice(e *Encoder, value []uint32) (int, error) {
+	return EncodeUint32SliceWithLimit(e, value, e.maxElements)
+}
+
+func EncodeUint32SliceWithLimit(e *Encoder, value []uint32, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
+	if err != nil {
+		return 0, err
+	}
+	for _, v := range value {
+		n, err := EncodeCompact32(e, v)
+		if err != nil {
+			return 0, err
+		}
+		total += n
+	}
+
+	return total, nil
+}
+
+func EncodeUint64Slice(e *Encoder, value []uint64) (int, error) {
+	return EncodeUint64SliceWithLimit(e, value, e.maxElements)
+}
+
+func EncodeUint64SliceWithLimit(e *Encoder, value []uint64, limit uint32) (int, error) {
+	total, err := EncodeLen(e, uint32(len(value)), limit)
+	if err != nil {
+		return 0, err
+	}
+	for _, v := range value {
+		n, err := EncodeCompact64(e, v)
+		if err != nil {
+			return 0, err
+		}
+		total += n
+	}
+
+	return total, nil
+}
+
 func EncodeString(e *Encoder, value string) (int, error) {
 	return EncodeStringWithLimit(e, value, e.maxElements)
 }

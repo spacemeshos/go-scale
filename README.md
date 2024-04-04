@@ -13,7 +13,10 @@ Object{}    | concatenation of fields
 uint8       | compact u8 [TODO no need for compact u8]
 uint16      | compact u16
 uint32      | compact u32
-uint32      | compact u64
+uint34      | compact u64
+[]uint16    | length prefixed (compact u32) followed by compact u16s
+[]uint32    | length prefixed (compact u32) followed by compact u32s
+[]uint64    | length prefixed (compact u32) followed by compact u64s
 [...]Object | array with objects. encoded by consecutively encoding every object
 []Object    | slice with objects. prefixed with compact u32
 

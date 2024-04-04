@@ -330,6 +330,84 @@ func DecodeByteArray(d *Decoder, value []byte) (int, error) {
 	return d.read(value)
 }
 
+func DecodeUint16Slice(d *Decoder) ([]uint16, int, error) {
+	return DecodeUint16SliceWithLimit(d, d.maxElements)
+}
+
+func DecodeUint16SliceWithLimit(d *Decoder, limit uint32) ([]uint16, int, error) {
+	lth, total, err := DecodeLen(d, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+	if lth == 0 {
+		return nil, total, nil
+	}
+	values := make([]uint16, lth)
+
+	for i := uint32(0); i < lth; i++ {
+		v, n, err := DecodeCompact16(d)
+		if err != nil {
+			return nil, 0, err
+		}
+		total += n
+		values[i] = v
+	}
+
+	return values, total, nil
+}
+
+func DecodeUint32Slice(d *Decoder) ([]uint32, int, error) {
+	return DecodeUint32SliceWithLimit(d, d.maxElements)
+}
+
+func DecodeUint32SliceWithLimit(d *Decoder, limit uint32) ([]uint32, int, error) {
+	lth, total, err := DecodeLen(d, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+	if lth == 0 {
+		return nil, total, nil
+	}
+	values := make([]uint32, lth)
+
+	for i := uint32(0); i < lth; i++ {
+		v, n, err := DecodeCompact32(d)
+		if err != nil {
+			return nil, 0, err
+		}
+		total += n
+		values[i] = v
+	}
+
+	return values, total, nil
+}
+
+func DecodeUint64Slice(d *Decoder) ([]uint64, int, error) {
+	return DecodeUint64SliceWithLimit(d, d.maxElements)
+}
+
+func DecodeUint64SliceWithLimit(d *Decoder, limit uint32) ([]uint64, int, error) {
+	lth, total, err := DecodeLen(d, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+	if lth == 0 {
+		return nil, total, nil
+	}
+	values := make([]uint64, lth)
+
+	for i := uint32(0); i < lth; i++ {
+		v, n, err := DecodeCompact64(d)
+		if err != nil {
+			return nil, 0, err
+		}
+		total += n
+		values[i] = v
+	}
+
+	return values, total, nil
+}
+
 func DecodeString(d *Decoder) (string, int, error) {
 	return DecodeStringWithLimit(d, d.maxElements)
 }
