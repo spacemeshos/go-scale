@@ -365,6 +365,66 @@ func EncodeOption[V any, H EncodablePtr[V]](e *Encoder, value *V) (int, error) {
 	return total + n, nil
 }
 
+func EncodeCompact8Ptr(e *Encoder, value *uint8) (int, error) {
+	if value == nil {
+		return EncodeBool(e, false)
+	}
+	total, err := EncodeBool(e, true)
+	if err != nil {
+		return 0, err
+	}
+	n, err := EncodeCompact8(e, *value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, err
+}
+
+func EncodeCompact16Ptr(e *Encoder, value *uint16) (int, error) {
+	if value == nil {
+		return EncodeBool(e, false)
+	}
+	total, err := EncodeBool(e, true)
+	if err != nil {
+		return 0, err
+	}
+	n, err := EncodeCompact16(e, *value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, err
+}
+
+func EncodeCompact32Ptr(e *Encoder, value *uint32) (int, error) {
+	if value == nil {
+		return EncodeBool(e, false)
+	}
+	total, err := EncodeBool(e, true)
+	if err != nil {
+		return 0, err
+	}
+	n, err := EncodeCompact32(e, *value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, err
+}
+
+func EncodeCompact64Ptr(e *Encoder, value *uint64) (int, error) {
+	if value == nil {
+		return EncodeBool(e, false)
+	}
+	total, err := EncodeBool(e, true)
+	if err != nil {
+		return 0, err
+	}
+	n, err := EncodeCompact64(e, *value)
+	if err != nil {
+		return 0, err
+	}
+	return total + n, err
+}
+
 func EncodeStruct[V any, H EncodablePtr[V]](e *Encoder, value V) (int, error) {
 	n, err := H(&value).EncodeScale(e)
 	if err != nil {

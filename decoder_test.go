@@ -37,6 +37,14 @@ func testEncode(tb testing.TB, value any) []byte {
 		_, err = EncodeCompact32(enc, val)
 	case uint64:
 		_, err = EncodeCompact64(enc, val)
+	case *uint8:
+		_, err = EncodeCompact8Ptr(enc, val)
+	case *uint16:
+		_, err = EncodeCompact16Ptr(enc, val)
+	case *uint32:
+		_, err = EncodeCompact32Ptr(enc, val)
+	case *uint64:
+		_, err = EncodeCompact64Ptr(enc, val)
 	case []byte:
 		_, err = EncodeByteSlice(enc, val)
 	case []uint16:
@@ -69,6 +77,14 @@ func expectEqual(tb testing.TB, value any, r io.Reader) {
 		rst, _, err = DecodeCompact32(dec)
 	case uint64:
 		rst, _, err = DecodeCompact64(dec)
+	case *uint8:
+		rst, _, err = DecodeCompact8Ptr(dec)
+	case *uint16:
+		rst, _, err = DecodeCompact16Ptr(dec)
+	case *uint32:
+		rst, _, err = DecodeCompact32Ptr(dec)
+	case *uint64:
+		rst, _, err = DecodeCompact64Ptr(dec)
 	case []byte:
 		rst, _, err = DecodeByteSlice(dec)
 	case []uint16:
@@ -106,6 +122,38 @@ func TestReadFull(t *testing.T) {
 		{
 			desc:   "uint64",
 			expect: uint64(math.MaxUint64),
+		},
+		{
+			desc:   "*uint8",
+			expect: intPtr[uint8](math.MaxUint8),
+		},
+		{
+			desc:   "nil *uint8",
+			expect: (*uint8)(nil),
+		},
+		{
+			desc:   "*uint16",
+			expect: intPtr[uint16](math.MaxUint8),
+		},
+		{
+			desc:   "nil *uint16",
+			expect: (*uint16)(nil),
+		},
+		{
+			desc:   "*uint32",
+			expect: intPtr[uint32](math.MaxUint8),
+		},
+		{
+			desc:   "nil *uint32",
+			expect: (*uint32)(nil),
+		},
+		{
+			desc:   "*uint64",
+			expect: intPtr[uint64](math.MaxUint8),
+		},
+		{
+			desc:   "nil *uint64",
+			expect: (*uint64)(nil),
 		},
 		{
 			desc:   "byte slice",

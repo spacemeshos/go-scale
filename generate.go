@@ -308,6 +308,18 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 	case reflect.Struct:
 		return scaleType{Name: "Object"}, nil
 	case reflect.Ptr:
+		if field.Type.Elem().Kind() == reflect.Uint8 && !field.Type.Elem().Implements(encodableType) {
+			return scaleType{Name: "Compact8Ptr"}, nil
+		}
+		if field.Type.Elem().Kind() == reflect.Uint16 && !field.Type.Elem().Implements(encodableType) {
+			return scaleType{Name: "Compact16Ptr"}, nil
+		}
+		if field.Type.Elem().Kind() == reflect.Uint32 && !field.Type.Elem().Implements(encodableType) {
+			return scaleType{Name: "Compact32Ptr"}, nil
+		}
+		if field.Type.Elem().Kind() == reflect.Uint64 && !field.Type.Elem().Implements(encodableType) {
+			return scaleType{Name: "Compact64Ptr"}, nil
+		}
 		return scaleType{Name: "Option"}, nil
 	case reflect.Slice:
 		if field.Type.Elem().Kind() == reflect.Slice && field.Type.Elem().Elem().Kind() == reflect.Uint8 {
