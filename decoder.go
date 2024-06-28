@@ -44,8 +44,15 @@ func WithDecodeMaxNested(nested uint) decoderOpts {
 // WithDecodeMaxElements sets the maximum number of elements allowed in a collection.
 // The default value is 1 << 20.
 func WithDecodeMaxElements(elements uint32) decoderOpts {
-	return func(e *Decoder) {
-		e.maxElements = elements
+	return func(d *Decoder) {
+		d.maxElements = elements
+	}
+}
+
+// WithDecodeLocal instructs the decoder to skip decoding of fields with the `nonlocal` tag.
+func WithDecodeLocal() decoderOpts {
+	return func(d *Decoder) {
+		d.local = true
 	}
 }
 
@@ -67,6 +74,7 @@ type Decoder struct {
 	scratch     [9]byte
 	maxNested   uint
 	maxElements uint32
+	local       bool
 }
 
 func (d *Decoder) enterNested() error {
@@ -83,6 +91,12 @@ func (e *Decoder) leaveNested() {
 
 func (d *Decoder) read(buf []byte) (int, error) {
 	return io.ReadFull(d.r, buf)
+}
+
+// Local returns true if the decoder is using local mode, that is, skipping fields with
+// the `nonlocal` tag.
+func (d *Decoder) Local() bool {
+	return d.local
 }
 
 func DecodeByte(d *Decoder) (byte, int, error) {

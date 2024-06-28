@@ -31,8 +31,10 @@ type temp struct {
 	decode string
 }
 
+type action int
+
 const (
-	encode = iota
+	encode action = iota
 	decode
 )
 
@@ -119,7 +121,7 @@ var (
 	}
 )
 
-func getAction(tm temp, action int) string {
+func getAction(tm temp, action action) string {
 	switch action {
 	case encode:
 		return tm.encode
@@ -266,6 +268,7 @@ type scaleType struct {
 	Args           string
 	EncodeModifier string
 	DecodeModifier string
+	NonLocal       bool
 }
 
 func getDecodeModifier(parentType reflect.Type, field reflect.StructField) string {
@@ -277,6 +280,18 @@ func getDecodeModifier(parentType reflect.Type, field reflect.StructField) strin
 }
 
 func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType, error) {
+	st, err := getScaleTypeInner(parentType, field)
+	if err != nil {
+		return scaleType{}, err
+	}
+	st.NonLocal, err = nonLocal(field.Tag)
+	if err != nil {
+		return scaleType{}, fmt.Errorf("getting tags: %w", err)
+	}
+	return st, nil
+}
+
+func getScaleTypeInner(parentType reflect.Type, field reflect.StructField) (scaleType, error) {
 	decodeModifier := getDecodeModifier(parentType, field)
 	encodableType := reflect.TypeOf((*Encodable)(nil)).Elem()
 
@@ -374,7 +389,7 @@ func getTemplate(stype scaleType) temp {
 	}
 }
 
-func executeAction(action int, w io.Writer, tc *typeContext) error {
+func executeAction(action action, w io.Writer, tc *typeContext) error {
 	typ := tc.Type
 
 	tpl, err := template.New("").Parse(getAction(start, action))
@@ -394,6 +409,17 @@ func executeAction(action int, w io.Writer, tc *typeContext) error {
 		scaleType, err := getScaleType(typ, field)
 		if err != nil {
 			return fmt.Errorf("getting scale type for %s: %w", typ, err)
+		}
+
+		if scaleType.NonLocal {
+			switch action {
+			case encode:
+				w.Write([]byte("if !enc.Local() "))
+			case decode:
+				w.Write([]byte("if !dec.Local() "))
+			default:
+				panic("BUG: bad action")
+			}
 		}
 
 		tctx := &typeContext{

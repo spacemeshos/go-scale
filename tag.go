@@ -51,22 +51,29 @@ func MustGetMaxElements[T any](fieldName string) uint32 {
 	return maxElements
 }
 
-func maxScaleElements(tag reflect.StructTag) (uint32, error) {
+func scaleTagItems(tag reflect.StructTag) ([]string, error) {
 	scaleTagValue, exists := tag.Lookup("scale")
 	if !exists || scaleTagValue == "" {
-		return 0, nil
+		return nil, nil
 	}
 	if scaleTagValue == "" {
-		return 0, errors.New("scale tag is not defined")
+		return nil, errors.New("scale tag is not defined")
 	}
-	pairs := strings.Split(scaleTagValue, ",")
-	if len(pairs) == 0 {
-		return 0, errors.New("no max value found in scale tag")
+	var parts []string
+	for _, p := range strings.Split(scaleTagValue, ",") {
+		parts = append(parts, strings.TrimSpace(p))
+	}
+	return parts, nil
+}
+
+func maxScaleElements(tag reflect.StructTag) (uint32, error) {
+	parts, err := scaleTagItems(tag)
+	if err != nil {
+		return 0, err
 	}
 	var maxElementsStr string
-	for _, pair := range pairs {
-		pair = strings.TrimSpace(pair)
-		data := strings.Split(pair, "=")
+	for _, part := range parts {
+		data := strings.Split(part, "=")
 		if len(data) < 2 {
 			continue
 		}
@@ -77,11 +84,24 @@ func maxScaleElements(tag reflect.StructTag) (uint32, error) {
 		break
 	}
 	if maxElementsStr == "" {
-		return 0, errors.New("no max value found in scale tag")
+		return 0, nil
 	}
 	maxElements, err := strconv.Atoi(maxElementsStr)
 	if err != nil {
 		return 0, fmt.Errorf("parsing max value: %w", err)
 	}
 	return uint32(maxElements), nil
+}
+
+func nonLocal(tag reflect.StructTag) (bool, error) {
+	parts, err := scaleTagItems(tag)
+	if err != nil {
+		return false, err
+	}
+	for _, part := range parts {
+		if part == "nonlocal" {
+			return true, nil
+		}
+	}
+	return false, nil
 }

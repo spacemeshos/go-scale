@@ -31,6 +31,18 @@ func (newU64) EncodeScale(enc *Encoder) (int, error) {
 	panic("uninmplemented")
 }
 
+func Test_getScaleType_NonLocal(t *testing.T) {
+	type Foo struct {
+		Name string `scale:"nonlocal,max=64"`
+	}
+
+	rtype := reflect.TypeOf(Foo{})
+	scaleT, err := getScaleType(rtype, rtype.Field(0))
+	require.NoError(t, err)
+	require.Equal(t, "StringWithLimit", scaleT.Name)
+	require.True(t, scaleT.NonLocal)
+}
+
 func Test_getScaleType_Slices(t *testing.T) {
 	t.Run("[]uint16", func(t *testing.T) {
 		type Foo struct {
@@ -41,6 +53,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Uint16SliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]newUint16 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -51,6 +64,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "StructSliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]newUint16 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint16
@@ -62,6 +76,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Uint16SliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]uint32", func(t *testing.T) {
 		type Foo struct {
@@ -72,6 +87,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Uint32SliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]newUint32 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -82,6 +98,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "StructSliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]newUint32 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint32
@@ -93,6 +110,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Uint32SliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]uint64", func(t *testing.T) {
 		type Foo struct {
@@ -103,6 +121,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Uint64SliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]newUint64 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -113,6 +132,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "StructSliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("[]newUint64 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint64
@@ -124,6 +144,7 @@ func Test_getScaleType_Slices(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Uint64SliceWithLimit", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 }
 
@@ -137,6 +158,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact8Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU8 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -147,6 +169,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Option", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU8 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint8
@@ -158,6 +181,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact8Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*uint16", func(t *testing.T) {
 		type Foo struct {
@@ -168,6 +192,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact16Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU16 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -178,6 +203,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Option", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU16 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint16
@@ -189,6 +215,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact16Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*uint32", func(t *testing.T) {
 		type Foo struct {
@@ -199,6 +226,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact32Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU32 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -209,6 +237,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Option", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU32 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint32
@@ -220,6 +249,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact32Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*uint64", func(t *testing.T) {
 		type Foo struct {
@@ -230,6 +260,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact64Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU64 (implements Encodable)", func(t *testing.T) {
 		type Foo struct {
@@ -240,6 +271,7 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Option", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 	t.Run("*newU64 (doesn't implement Encodable)", func(t *testing.T) {
 		type newT uint64
@@ -251,5 +283,6 @@ func Test_getScaleTypePtrs(t *testing.T) {
 		scaleT, err := getScaleType(rtype, rtype.Field(0))
 		require.NoError(t, err)
 		require.Equal(t, "Compact64Ptr", scaleT.Name)
+		require.False(t, scaleT.NonLocal)
 	})
 }
