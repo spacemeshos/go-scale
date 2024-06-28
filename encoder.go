@@ -52,6 +52,13 @@ func WithEncodeMaxElements(elements uint32) encoderOpts {
 	}
 }
 
+// WithEncodeLocal instructs the encoder to skip encoding of fields with the `nonlocal` tag.
+func WithEncodeLocal() encoderOpts {
+	return func(e *Encoder) {
+		e.local = true
+	}
+}
+
 // NewEncoder returns a new encoder that writes to w.
 // If w implements io.StringWriter, the returned encoder will be more efficient in encoding strings.
 func NewEncoder(w io.Writer, opts ...encoderOpts) *Encoder {
@@ -71,6 +78,7 @@ type Encoder struct {
 	scratch     [9]byte
 	maxNested   uint
 	maxElements uint32
+	local       bool
 }
 
 func (e *Encoder) enterNested() error {
@@ -83,6 +91,12 @@ func (e *Encoder) enterNested() error {
 
 func (e *Encoder) leaveNested() {
 	e.maxNested++
+}
+
+// Local returns true if the encoder is using local mode, that is, skipping fields with
+// the `nonlocal` tag.
+func (e *Encoder) Local() bool {
+	return e.local
 }
 
 func EncodeByteSlice(e *Encoder, value []byte) (int, error) {
