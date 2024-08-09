@@ -30,7 +30,6 @@ func TestGoldenExamples(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, file := range files {
-		file := file
 		if strings.Contains(file.Name(), scaleSuffix) || strings.Contains(file.Name(), "test.go") {
 			continue
 		}
@@ -63,7 +62,6 @@ func TestExampleErrors(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, file := range files {
-		file := file
 		if file.IsDir() {
 			continue
 		}

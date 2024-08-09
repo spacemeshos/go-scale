@@ -1,6 +1,5 @@
-GOLANGCI_LINT_VERSION := v1.57.0
-STATICCHECK_VERSION := v0.4.7
-GOTESTSUM_VERSION := v1.11.0
+GOLANGCI_LINT_VERSION := v1.59.0
+GOTESTSUM_VERSION := v1.12.0
 
 all: build test
 .PHONY: all
@@ -17,7 +16,6 @@ install:
 	go mod download
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_LINT_VERSION)
 	go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION)
-	go install honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)
 .PHONY: install
 
 tidy:
@@ -61,7 +59,3 @@ lint-github-action:
 cover:
 	go test -coverprofile=cover.out -timeout 0 -p 1 -coverpkg=./... $(UNIT_TESTS)
 .PHONY: cover
-
-staticcheck:
-	staticcheck ./...
-.PHONY: staticcheck
