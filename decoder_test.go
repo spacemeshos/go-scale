@@ -20,9 +20,9 @@ func (t *halfReader) Read(buf []byte) (int, error) {
 	return n, nil
 }
 
-// testEncode is a generic encode for primitive types.
+// encodeCompact is a generic encode for primitive types using compact representation.
 // other types are derived from this types.
-func testEncode(tb testing.TB, value any) []byte {
+func encodeCompact(tb testing.TB, value any) []byte {
 	var (
 		buf = bytes.NewBuffer(nil)
 		enc = NewEncoder(buf)
@@ -62,7 +62,7 @@ func testEncode(tb testing.TB, value any) []byte {
 	return buf.Bytes()
 }
 
-func expectEqual(tb testing.TB, value any, r io.Reader) {
+func expectEqual_Compact(tb testing.TB, value any, r io.Reader) {
 	var (
 		dec = NewDecoder(r)
 		err error
@@ -182,18 +182,18 @@ func TestReadFull(t *testing.T) {
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Run("full", func(t *testing.T) {
-				expectEqual(t, tc.expect, bytes.NewReader(testEncode(t, tc.expect)))
+				expectEqual_Compact(t, tc.expect, bytes.NewReader(encodeCompact(t, tc.expect)))
 			})
 			t.Run("partial", func(t *testing.T) {
-				expectEqual(t, tc.expect, &halfReader{
-					rem: testEncode(t, tc.expect),
+				expectEqual_Compact(t, tc.expect, &halfReader{
+					rem: encodeCompact(t, tc.expect),
 				})
 			})
 		})
 	}
 }
 
-func decodeTest[T any](t *testing.T, value []byte, expect T) {
+func decodeCompactTest[T any](t *testing.T, value []byte, expect T) {
 	buf := bytes.NewBuffer(value)
 	dec := NewDecoder(buf)
 	switch typed := any(expect).(type) {
@@ -218,30 +218,30 @@ func decodeTest[T any](t *testing.T, value []byte, expect T) {
 
 func TestDecodeCompactIntegers(t *testing.T) {
 	t.Run("uint8", func(t *testing.T) {
-		for _, tc := range uint8TestCases() {
+		for _, tc := range uint8CompactTestCases() {
 			t.Run("", func(t *testing.T) {
-				decodeTest(t, tc.expect, tc.value)
+				decodeCompactTest(t, tc.expect, tc.value)
 			})
 		}
 	})
 	t.Run("uint16", func(t *testing.T) {
-		for _, tc := range uint16TestCases() {
+		for _, tc := range uint16CompactTestCases() {
 			t.Run("", func(t *testing.T) {
-				decodeTest(t, tc.expect, tc.value)
+				decodeCompactTest(t, tc.expect, tc.value)
 			})
 		}
 	})
 	t.Run("uint32", func(t *testing.T) {
-		for _, tc := range uint32TestCases() {
+		for _, tc := range uint32CompactTestCases() {
 			t.Run("", func(t *testing.T) {
-				decodeTest(t, tc.expect, tc.value)
+				decodeCompactTest(t, tc.expect, tc.value)
 			})
 		}
 	})
 	t.Run("uint64", func(t *testing.T) {
-		for _, tc := range uint64TestCases() {
+		for _, tc := range uint64CompactTestCases() {
 			t.Run("", func(t *testing.T) {
-				decodeTest(t, tc.expect, tc.value)
+				decodeCompactTest(t, tc.expect, tc.value)
 			})
 		}
 	})
@@ -399,4 +399,35 @@ func TestCompactIntegersBoundaries(t *testing.T) {
 			})
 		}
 	})
+}
+
+func decodeTest[T any](t *testing.T, value []byte, expect T) {
+	buf := bytes.NewBuffer(value)
+	dec := NewDecoder(buf)
+	switch typed := any(expect).(type) {
+	case uint8:
+		rst, _, err := DecodeByte(dec)
+		require.NoError(t, err)
+		require.Equal(t, typed, rst)
+	case uint16:
+		rst, _, err := DecodeUint16(dec)
+		require.NoError(t, err)
+		require.Equal(t, typed, rst)
+	case uint32:
+		rst, _, err := DecodeUint32(dec)
+		require.NoError(t, err)
+		require.Equal(t, typed, rst)
+	case uint64:
+		rst, _, err := DecodeUint64(dec)
+		require.NoError(t, err)
+		require.Equal(t, typed, rst)
+	}
+}
+
+func TestDecodeUint(t *testing.T) {
+	for _, tc := range nonCompactTestCases() {
+		t.Run("", func(t *testing.T) {
+			decodeTest(t, tc.expect, tc.value)
+		})
+	}
 }
