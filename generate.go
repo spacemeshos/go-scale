@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"go/constant"
 	"go/format"
 	"html/template"
 	"io"
@@ -282,7 +283,7 @@ func getScaleType(parentType reflect.Type, field reflect.StructField) (scaleType
 
 	switch field.Type.Kind() {
 	case reflect.Bool:
-		return scaleType{Name: "Bool"}, nil
+		return scaleType{Name: constant.Bool.String()}, nil
 	case reflect.String:
 		maxElements, err := maxScaleElements(field.Tag)
 		if err != nil {
