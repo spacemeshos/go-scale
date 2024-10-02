@@ -3,7 +3,6 @@ package scale
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"math"
 	"testing"
 
@@ -20,245 +19,136 @@ func (t *halfReader) Read(buf []byte) (int, error) {
 	return n, nil
 }
 
-// encodeCompact is a generic encode for primitive types using compact representation.
-// other types are derived from this types.
-func encodeCompact(tb testing.TB, value any) []byte {
-	var (
-		buf = bytes.NewBuffer(nil)
-		enc = NewEncoder(buf)
-		err error
-	)
-	switch val := value.(type) {
-	case uint8:
-		_, err = EncodeCompact8(enc, val)
-	case uint16:
-		_, err = EncodeCompact16(enc, val)
-	case uint32:
-		_, err = EncodeCompact32(enc, val)
-	case uint64:
-		_, err = EncodeCompact64(enc, val)
-	case *uint8:
-		_, err = EncodeCompact8Ptr(enc, val)
-	case *uint16:
-		_, err = EncodeCompact16Ptr(enc, val)
-	case *uint32:
-		_, err = EncodeCompact32Ptr(enc, val)
-	case *uint64:
-		_, err = EncodeCompact64Ptr(enc, val)
-	case []byte:
-		_, err = EncodeByteSlice(enc, val)
-	case []uint16:
-		_, err = EncodeUint16Slice(enc, val)
-	case []uint32:
-		_, err = EncodeUint32Slice(enc, val)
-	case []uint64:
-		_, err = EncodeUint64Slice(enc, val)
-	case string:
-		_, err = EncodeString(enc, val)
-	case []string:
-		_, err = EncodeStringSlice(enc, val)
-	}
-	require.NoError(tb, err)
-	return buf.Bytes()
-}
+func testReadFull[T any](
+	t *testing.T,
+	name string,
+	val T,
+	encode func(e *Encoder, v T) (int, error),
+	decode func(d *Decoder) (T, int, error),
+) {
+	t.Run(name, func(t *testing.T) {
+		t.Run("full", func(t *testing.T) {
+			buf := bytes.NewBuffer(nil)
+			enc := NewEncoder(buf)
+			_, err := encode(enc, val)
+			require.NoError(t, err)
 
-func expectEqual_Compact(tb testing.TB, value any, r io.Reader) {
-	var (
-		dec = NewDecoder(r)
-		err error
-		rst any
-	)
-	switch value.(type) {
-	case uint8:
-		rst, _, err = DecodeCompact8(dec)
-	case uint16:
-		rst, _, err = DecodeCompact16(dec)
-	case uint32:
-		rst, _, err = DecodeCompact32(dec)
-	case uint64:
-		rst, _, err = DecodeCompact64(dec)
-	case *uint8:
-		rst, _, err = DecodeCompact8Ptr(dec)
-	case *uint16:
-		rst, _, err = DecodeCompact16Ptr(dec)
-	case *uint32:
-		rst, _, err = DecodeCompact32Ptr(dec)
-	case *uint64:
-		rst, _, err = DecodeCompact64Ptr(dec)
-	case []byte:
-		rst, _, err = DecodeByteSlice(dec)
-	case []uint16:
-		rst, _, err = DecodeUint16Slice(dec)
-	case []uint32:
-		rst, _, err = DecodeUint32Slice(dec)
-	case []uint64:
-		rst, _, err = DecodeUint64Slice(dec)
-	case string:
-		rst, _, err = DecodeString(dec)
-	case []string:
-		rst, _, err = DecodeStringSlice(dec)
-	}
-	require.NoError(tb, err)
-	require.Equal(tb, value, rst)
+			dec := NewDecoder(buf)
+			rst, _, err := decode(dec)
+			require.NoError(t, err)
+			require.Equal(t, val, rst)
+		})
+		t.Run("partial", func(t *testing.T) {
+			buf := bytes.NewBuffer(nil)
+			enc := NewEncoder(buf)
+			_, err := encode(enc, val)
+			require.NoError(t, err)
+
+			hr := &halfReader{rem: buf.Bytes()}
+			dec := NewDecoder(hr)
+			rst, _, err := decode(dec)
+			require.NoError(t, err)
+			require.Equal(t, val, rst)
+		})
+	})
 }
 
 func TestReadFull(t *testing.T) {
-	for _, tc := range []struct {
-		desc   string
-		expect any
-	}{
-		{
-			desc:   "uint8",
-			expect: uint8(math.MaxUint8),
-		},
-		{
-			desc:   "uint16",
-			expect: uint16(math.MaxUint16),
-		},
-		{
-			desc:   "uint32",
-			expect: uint32(math.MaxUint32),
-		},
-		{
-			desc:   "uint64",
-			expect: uint64(math.MaxUint64),
-		},
-		{
-			desc:   "*uint8",
-			expect: intPtr[uint8](math.MaxUint8),
-		},
-		{
-			desc:   "nil *uint8",
-			expect: (*uint8)(nil),
-		},
-		{
-			desc:   "*uint16",
-			expect: intPtr[uint16](math.MaxUint8),
-		},
-		{
-			desc:   "nil *uint16",
-			expect: (*uint16)(nil),
-		},
-		{
-			desc:   "*uint32",
-			expect: intPtr[uint32](math.MaxUint8),
-		},
-		{
-			desc:   "nil *uint32",
-			expect: (*uint32)(nil),
-		},
-		{
-			desc:   "*uint64",
-			expect: intPtr[uint64](math.MaxUint8),
-		},
-		{
-			desc:   "nil *uint64",
-			expect: (*uint64)(nil),
-		},
-		{
-			desc:   "byte slice",
-			expect: []byte("dsa1232131312dsada123312"),
-		},
-		{
-			desc:   "string",
-			expect: "dsa1232131312dsada123312",
-		},
-		{
-			desc:   "string slice",
-			expect: []string{"qwe123", "dsa456"},
-		},
-		{
-			desc:   "uint16 slice",
-			expect: []uint16{0, 1, 2, math.MaxUint8, math.MaxUint16},
-		},
-		{
-			desc:   "uint32 slice",
-			expect: []uint32{0, 1, 2, math.MaxUint8, math.MaxUint16, math.MaxUint32},
-		},
-		{
-			desc:   "uint64 slice",
-			expect: []uint64{0, 1, 2, math.MaxUint32, math.MaxUint64},
-		},
-	} {
-		t.Run(tc.desc, func(t *testing.T) {
-			t.Run("full", func(t *testing.T) {
-				expectEqual_Compact(t, tc.expect, bytes.NewReader(encodeCompact(t, tc.expect)))
-			})
-			t.Run("partial", func(t *testing.T) {
-				expectEqual_Compact(t, tc.expect, &halfReader{
-					rem: encodeCompact(t, tc.expect),
-				})
-			})
-		})
-	}
+	testReadFull(
+		t, "uint8", uint8(math.MaxUint8),
+		EncodeCompact8, DecodeCompact8)
+	testReadFull(
+		t, "uint16", uint16(math.MaxUint16),
+		EncodeCompact16, DecodeCompact16)
+	testReadFull(t,
+		"uint32", uint32(math.MaxUint32),
+		EncodeCompact32, DecodeCompact32)
+	testReadFull(
+		t, "uint64", uint64(math.MaxUint64),
+		EncodeCompact64, DecodeCompact64)
+	testReadFull(
+		t, "*uint8", intPtr[uint8](math.MaxUint8),
+		EncodeCompact8Ptr, DecodeCompact8Ptr)
+	testReadFull(
+		t, "nil *uint8", (*uint8)(nil),
+		EncodeCompact8Ptr, DecodeCompact8Ptr)
+	testReadFull(
+		t, "*uint16", intPtr[uint16](math.MaxUint16),
+		EncodeCompact16Ptr, DecodeCompact16Ptr)
+	testReadFull(
+		t, "nil *uint16", (*uint16)(nil),
+		EncodeCompact16Ptr, DecodeCompact16Ptr)
+	testReadFull(
+		t, "*uint32", intPtr[uint32](math.MaxUint32),
+		EncodeCompact32Ptr, DecodeCompact32Ptr)
+	testReadFull(
+		t, "nil *uint32", (*uint32)(nil),
+		EncodeCompact32Ptr, DecodeCompact32Ptr)
+	testReadFull(
+		t, "*uint64", intPtr[uint64](math.MaxUint64),
+		EncodeCompact64Ptr, DecodeCompact64Ptr)
+	testReadFull(
+		t, "nil *uint64", (*uint64)(nil),
+		EncodeCompact64Ptr, DecodeCompact64Ptr)
+	testReadFull(
+		t, "byte slice", []byte("dsa1232131312dsada123312"),
+		EncodeByteSlice, DecodeByteSlice)
+	testReadFull(
+		t, "string", "dsa1232131312dsada123312",
+		EncodeString, DecodeString)
+	testReadFull(
+		t, "string slice", []string{"qwe123", "dsa456"},
+		EncodeStringSlice, DecodeStringSlice)
+	testReadFull(
+		t, "uint16 slice", []uint16{0, 1, 2, math.MaxUint8, math.MaxUint16},
+		EncodeUint16Slice, DecodeUint16Slice)
+	testReadFull(
+		t, "uint32 slice", []uint32{0, 1, 2, math.MaxUint8, math.MaxUint16, math.MaxUint32},
+		EncodeUint32Slice, DecodeUint32Slice)
+	testReadFull(
+		t, "uint64 slice", []uint64{0, 1, 2, math.MaxUint32, math.MaxUint64},
+		EncodeUint64Slice, DecodeUint64Slice)
 }
 
-func decodeCompactTest[T any](t *testing.T, value []byte, expect T) {
-	buf := bytes.NewBuffer(value)
-	dec := NewDecoder(buf)
-	switch typed := any(expect).(type) {
-	case uint8:
-		rst, _, err := DecodeCompact8(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	case uint16:
-		rst, _, err := DecodeCompact16(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	case uint32:
-		rst, _, err := DecodeCompact32(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	case uint64:
-		rst, _, err := DecodeCompact64(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	}
+func testDecodeCompactIntegers[T any](
+	t *testing.T,
+	name string,
+	tcs []encTestCase[T],
+	decode func(d *Decoder) (T, int, error),
+) {
+	t.Run(name, func(t *testing.T) {
+		for _, tc := range tcs {
+			t.Run("", func(t *testing.T) {
+				buf := bytes.NewBuffer(tc.expect)
+				dec := NewDecoder(buf)
+				rst, _, err := decode(dec)
+				require.NoError(t, err)
+				require.Equal(t, tc.value, rst)
+			})
+		}
+	})
 }
 
 func TestDecodeCompactIntegers(t *testing.T) {
-	t.Run("uint8", func(t *testing.T) {
-		for _, tc := range uint8CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				decodeCompactTest(t, tc.expect, tc.value)
-			})
-		}
-	})
-	t.Run("uint16", func(t *testing.T) {
-		for _, tc := range uint16CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				decodeCompactTest(t, tc.expect, tc.value)
-			})
-		}
-	})
-	t.Run("uint32", func(t *testing.T) {
-		for _, tc := range uint32CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				decodeCompactTest(t, tc.expect, tc.value)
-			})
-		}
-	})
-	t.Run("uint64", func(t *testing.T) {
-		for _, tc := range uint64CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				decodeCompactTest(t, tc.expect, tc.value)
-			})
-		}
-	})
+	testDecodeCompactIntegers(t, "uint8", uint8CompactTestCases(), DecodeCompact8)
+	testDecodeCompactIntegers(t, "uint16", uint16CompactTestCases(), DecodeCompact16)
+	testDecodeCompactIntegers(t, "uint32", uint32CompactTestCases(), DecodeCompact32)
+	testDecodeCompactIntegers(t, "uint64", uint64CompactTestCases(), DecodeCompact64)
+	testDecodeCompactIntegers(t, "*uint8", uint8PtrTestCases(), DecodeCompact8Ptr)
+	testDecodeCompactIntegers(t, "*uint16", uint16PtrTestCases(), DecodeCompact16Ptr)
+	testDecodeCompactIntegers(t, "*uint32", uint32PtrTestCases(), DecodeCompact32Ptr)
+	testDecodeCompactIntegers(t, "*uint64", uint64PtrTestCases(), DecodeCompact64Ptr)
+	testDecodeCompactIntegers(t, "[]uint16", uint16SliceTestCases(), DecodeUint16Slice)
+	testDecodeCompactIntegers(t, "[]uint32", uint32SliceTestCases(), DecodeUint32Slice)
+	testDecodeCompactIntegers(t, "[]uint64", uint64SliceTestCases(), DecodeUint64Slice)
 }
 
-type boundsTestCase struct {
+type boundTestCase struct {
 	value []byte
 }
 
-func boundsDecodeTest(t *testing.T, tc boundsTestCase, decodeFunc func(*Decoder) error) {
-	buf := bytes.NewBuffer(tc.value)
-	dec := NewDecoder(buf)
-	require.Error(t, decodeFunc(dec), fmt.Sprintf("%b", tc.value))
-}
-
-func boundsUint8Cases() []boundsTestCase {
-	return []boundsTestCase{
+func boundUint8Cases() []boundTestCase {
+	return []boundTestCase{
 		{
 			value: []byte{0b0000_0011},
 		},
@@ -274,8 +164,8 @@ func boundsUint8Cases() []boundsTestCase {
 	}
 }
 
-func boundsUint16Cases() []boundsTestCase {
-	return []boundsTestCase{
+func boundUint16Cases() []boundTestCase {
+	return []boundTestCase{
 		{
 			value: []byte{0b0000_0011},
 		},
@@ -300,8 +190,8 @@ func boundsUint16Cases() []boundsTestCase {
 	}
 }
 
-func boundsUint32Cases() []boundsTestCase {
-	return []boundsTestCase{
+func boundUint32Cases() []boundTestCase {
+	return []boundTestCase{
 		{
 			value: []byte{0b0000_0011},
 		},
@@ -329,8 +219,8 @@ func boundsUint32Cases() []boundsTestCase {
 	}
 }
 
-func boundsUint64Cases() []boundsTestCase {
-	return []boundsTestCase{
+func boundUint64Cases() []boundTestCase {
+	return []boundTestCase{
 		{
 			value: []byte{0b0000_0011},
 		},
@@ -358,76 +248,70 @@ func boundsUint64Cases() []boundsTestCase {
 	}
 }
 
-func TestCompactIntegersBoundaries(t *testing.T) {
-	t.Run("uint8", func(t *testing.T) {
-		for _, tc := range boundsUint8Cases() {
+func testCompactIntegerBoundaries[T any](
+	t *testing.T,
+	name string,
+	tcs []boundTestCase,
+	decode func(d *Decoder) (T, int, error),
+) {
+	t.Run(name, func(t *testing.T) {
+		for _, tc := range tcs {
 			t.Run("", func(t *testing.T) {
-				boundsDecodeTest(t, tc, func(dec *Decoder) error {
-					_, _, err := DecodeCompact8(dec)
-					return err
-				})
-			})
-		}
-	})
-	t.Run("uint16", func(t *testing.T) {
-		for _, tc := range boundsUint16Cases() {
-			t.Run("", func(t *testing.T) {
-				boundsDecodeTest(t, tc, func(dec *Decoder) error {
-					_, _, err := DecodeCompact16(dec)
-					return err
-				})
-			})
-		}
-	})
-	t.Run("uint32", func(t *testing.T) {
-		for _, tc := range boundsUint32Cases() {
-			t.Run("", func(t *testing.T) {
-				boundsDecodeTest(t, tc, func(dec *Decoder) error {
-					_, _, err := DecodeCompact32(dec)
-					return err
-				})
-			})
-		}
-	})
-	t.Run("uint64", func(t *testing.T) {
-		for _, tc := range boundsUint64Cases() {
-			t.Run("", func(t *testing.T) {
-				boundsDecodeTest(t, tc, func(dec *Decoder) error {
-					_, _, err := DecodeCompact64(dec)
-					return err
-				})
+				buf := bytes.NewBuffer(tc.value)
+				dec := NewDecoder(buf)
+				_, _, err := decode(dec)
+				require.Error(t, err, fmt.Sprintf("%b", tc.value))
 			})
 		}
 	})
 }
 
-func decodeTest[T any](t *testing.T, value []byte, expect T) {
-	buf := bytes.NewBuffer(value)
-	dec := NewDecoder(buf)
-	switch typed := any(expect).(type) {
-	case uint8:
-		rst, _, err := DecodeByte(dec)
+func TestCompactIntegersBoundaries(t *testing.T) {
+	testCompactIntegerBoundaries(t, "uint8", boundUint8Cases(), DecodeCompact8)
+	testCompactIntegerBoundaries(t, "uint16", boundUint16Cases(), DecodeCompact16)
+	testCompactIntegerBoundaries(t, "uint32", boundUint32Cases(), DecodeCompact32)
+	testCompactIntegerBoundaries(t, "uint64", boundUint64Cases(), DecodeCompact64)
+}
+
+func testDecodeNonCompact[T any](
+	t *testing.T,
+	name string,
+	val T,
+	encoded []byte,
+	decode func(d *Decoder) (T, int, error),
+) {
+	t.Run(name, func(t *testing.T) {
+		buf := bytes.NewBuffer(encoded)
+		dec := NewDecoder(buf)
+		rst, _, err := decode(dec)
 		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	case uint16:
-		rst, _, err := DecodeUint16(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	case uint32:
-		rst, _, err := DecodeUint32(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	case uint64:
-		rst, _, err := DecodeUint64(dec)
-		require.NoError(t, err)
-		require.Equal(t, typed, rst)
-	}
+		require.Equal(t, val, rst)
+	})
 }
 
 func TestDecodeUint(t *testing.T) {
-	for _, tc := range nonCompactTestCases() {
-		t.Run("", func(t *testing.T) {
-			decodeTest(t, tc.expect, tc.value)
-		})
-	}
+	testDecodeNonCompact(
+		t, "uint8",
+		uint8(0x42),
+		[]byte{0x42},
+		DecodeByte,
+	)
+	testDecodeNonCompact(
+		t, "uint16",
+		uint16(0x1234),
+		[]byte{0x34, 0x12},
+		DecodeUint16,
+	)
+	testDecodeNonCompact(
+		t, "uint32",
+		uint32(0x12345678),
+		[]byte{0x78, 0x56, 0x34, 0x12},
+		DecodeUint32,
+	)
+	testDecodeNonCompact(
+		t, "uint64",
+		uint64(0x123456789abcdef0),
+		[]byte{0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12},
+		DecodeUint64,
+	)
 }

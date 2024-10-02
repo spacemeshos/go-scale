@@ -221,153 +221,76 @@ func uint64SliceTestCases() []encTestCase[[]uint64] {
 	}
 }
 
-func compactEncodeTest(t *testing.T, value any, expect []byte) {
-	buf := bytes.NewBuffer(nil)
-	enc := NewEncoder(buf)
-	var err error
-	switch typed := any(value).(type) {
-	case uint8:
-		_, err = EncodeCompact8(enc, typed)
-	case uint16:
-		_, err = EncodeCompact16(enc, typed)
-	case uint32:
-		_, err = EncodeCompact32(enc, typed)
-	case uint64:
-		_, err = EncodeCompact64(enc, typed)
-	case *uint8:
-		_, err = EncodeCompact8Ptr(enc, typed)
-	case *uint16:
-		_, err = EncodeCompact16Ptr(enc, typed)
-	case *uint32:
-		_, err = EncodeCompact32Ptr(enc, typed)
-	case *uint64:
-		_, err = EncodeCompact64Ptr(enc, typed)
-	case []uint16:
-		_, err = EncodeUint16Slice(enc, typed)
-	case []uint32:
-		_, err = EncodeUint32Slice(enc, typed)
-	case []uint64:
-		_, err = EncodeUint64Slice(enc, typed)
-	default:
-		t.Fatal("unsupported type")
-	}
-	require.NoError(t, err)
-	require.Equal(t, expect, buf.Bytes())
+func testEncodeCompactIntegers[T any](
+	t *testing.T,
+	name string,
+	tcs []encTestCase[T],
+	encode func(enc *Encoder, value T) (int, error),
+) {
+	t.Run(name, func(t *testing.T) {
+		for _, tc := range tcs {
+			t.Run("", func(t *testing.T) {
+				buf := bytes.NewBuffer(nil)
+				enc := NewEncoder(buf)
+				_, err := encode(enc, tc.value)
+				require.NoError(t, err)
+				require.Equal(t, tc.expect, buf.Bytes())
+			})
+		}
+	})
 }
 
 func TestEncodeCompactIntegers(t *testing.T) {
-	t.Run("uint8", func(t *testing.T) {
-		for _, tc := range uint8CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("uint16", func(t *testing.T) {
-		for _, tc := range uint16CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("uint32", func(t *testing.T) {
-		for _, tc := range uint32CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("uint64", func(t *testing.T) {
-		for _, tc := range uint64CompactTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("*uint8", func(t *testing.T) {
-		for _, tc := range uint8PtrTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("*uint16", func(t *testing.T) {
-		for _, tc := range uint16PtrTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("*uint32", func(t *testing.T) {
-		for _, tc := range uint32PtrTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("*uint64", func(t *testing.T) {
-		for _, tc := range uint64PtrTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("[]uint16", func(t *testing.T) {
-		for _, tc := range uint16SliceTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("[]uint32", func(t *testing.T) {
-		for _, tc := range uint32SliceTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
-	t.Run("[]uint64", func(t *testing.T) {
-		for _, tc := range uint64SliceTestCases() {
-			t.Run("", func(t *testing.T) {
-				compactEncodeTest(t, tc.value, tc.expect)
-			})
-		}
-	})
+	testEncodeCompactIntegers(t, "uint8", uint8CompactTestCases(), EncodeCompact8)
+	testEncodeCompactIntegers(t, "uint16", uint16CompactTestCases(), EncodeCompact16)
+	testEncodeCompactIntegers(t, "uint32", uint32CompactTestCases(), EncodeCompact32)
+	testEncodeCompactIntegers(t, "uint64", uint64CompactTestCases(), EncodeCompact64)
+	testEncodeCompactIntegers(t, "*uint8", uint8PtrTestCases(), EncodeCompact8Ptr)
+	testEncodeCompactIntegers(t, "*uint16", uint16PtrTestCases(), EncodeCompact16Ptr)
+	testEncodeCompactIntegers(t, "*uint32", uint32PtrTestCases(), EncodeCompact32Ptr)
+	testEncodeCompactIntegers(t, "*uint64", uint64PtrTestCases(), EncodeCompact64Ptr)
+	testEncodeCompactIntegers(t, "[]uint16", uint16SliceTestCases(), EncodeUint16Slice)
+	testEncodeCompactIntegers(t, "[]uint32", uint32SliceTestCases(), EncodeUint32Slice)
+	testEncodeCompactIntegers(t, "[]uint64", uint64SliceTestCases(), EncodeUint64Slice)
 }
 
-func encodeTest(t *testing.T, value any, expect []byte) {
-	buf := bytes.NewBuffer(nil)
-	enc := NewEncoder(buf)
-	var err error
-	switch typed := any(value).(type) {
-	case uint8:
-		_, err = EncodeByte(enc, typed)
-	case uint16:
-		_, err = EncodeUint16(enc, typed)
-	case uint32:
-		_, err = EncodeUint32(enc, typed)
-	case uint64:
-		_, err = EncodeUint64(enc, typed)
-	default:
-		t.Fatal("unsupported type")
-	}
-	require.NoError(t, err)
-	require.Equal(t, expect, buf.Bytes())
-}
-
-func nonCompactTestCases() []encTestCase[any] {
-	return []encTestCase[any]{
-		{uint8(0x42), []byte{0x42}},
-		{uint16(0x1234), []byte{0x34, 0x12}},
-		{uint32(0x12345678), []byte{0x78, 0x56, 0x34, 0x12}},
-		{uint64(0x123456789abcdef0), []byte{0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12}},
-	}
+func testEncodeNonCompact[T any](
+	t *testing.T,
+	name string,
+	val T,
+	encoded []byte,
+	encode func(enc *Encoder, value T) (int, error),
+) {
+	t.Run(name, func(t *testing.T) {
+		var buf bytes.Buffer
+		enc := NewEncoder(&buf)
+		_, err := encode(enc, val)
+		require.NoError(t, err)
+		require.Equal(t, encoded, buf.Bytes())
+	})
 }
 
 func TestEncodeUint(t *testing.T) {
-	for _, tc := range nonCompactTestCases() {
-		t.Run("", func(t *testing.T) {
-			encodeTest(t, tc.value, tc.expect)
-		})
-	}
+	testEncodeNonCompact(
+		t, "uint8",
+		uint8(0x42),
+		[]byte{0x42},
+		EncodeByte,
+	)
+	testEncodeNonCompact(
+		t, "uint16",
+		uint16(0x1234),
+		[]byte{0x34, 0x12},
+		EncodeUint16)
+	testEncodeNonCompact(
+		t, "uint32",
+		uint32(0x12345678),
+		[]byte{0x78, 0x56, 0x34, 0x12},
+		EncodeUint32)
+	testEncodeNonCompact(
+		t, "uint64",
+		uint64(0x123456789abcdef0),
+		[]byte{0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12},
+		EncodeUint64,
+	)
 }
