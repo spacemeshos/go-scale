@@ -1,6 +1,7 @@
 package scale
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -91,6 +92,30 @@ func DecodeByte(d *Decoder) (byte, int, error) {
 		return 0, n, err
 	}
 	return d.scratch[0], n, err
+}
+
+func DecodeUint16(d *Decoder) (uint16, int, error) {
+	n, err := d.read(d.scratch[:2])
+	if err != nil {
+		return 0, n, err
+	}
+	return binary.LittleEndian.Uint16(d.scratch[:2]), n, err
+}
+
+func DecodeUint32(d *Decoder) (uint32, int, error) {
+	n, err := d.read(d.scratch[:4])
+	if err != nil {
+		return 0, n, err
+	}
+	return binary.LittleEndian.Uint32(d.scratch[:4]), n, err
+}
+
+func DecodeUint64(d *Decoder) (uint64, int, error) {
+	n, err := d.read(d.scratch[:8])
+	if err != nil {
+		return 0, n, err
+	}
+	return binary.LittleEndian.Uint64(d.scratch[:8]), n, err
 }
 
 func DecodeCompact8(d *Decoder) (uint8, int, error) {
