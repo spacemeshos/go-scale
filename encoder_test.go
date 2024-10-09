@@ -39,13 +39,13 @@ func BenchmarkEncodeStrings_WithWriterForStrings(b *testing.B) {
 	}
 }
 
-type encTestCase[T any] struct {
+type compactTestCase[T any] struct {
 	value  T
 	expect []byte
 }
 
-func uint8CompactTestCases() []encTestCase[uint8] {
-	return []encTestCase[uint8]{
+func uint8CompactTestCases() []compactTestCase[uint8] {
+	return []compactTestCase[uint8]{
 		{0, []byte{0b0000_0000}},
 		{1, []byte{0b0000_0100}},
 		{maxUint6, []byte{0b1111_1100}},
@@ -53,8 +53,8 @@ func uint8CompactTestCases() []encTestCase[uint8] {
 	}
 }
 
-func uint16CompactTestCases() []encTestCase[uint16] {
-	return []encTestCase[uint16]{
+func uint16CompactTestCases() []compactTestCase[uint16] {
+	return []compactTestCase[uint16]{
 		{0, []byte{0b0000_0000}},
 		{1, []byte{0b0000_0100}},
 		{maxUint6, []byte{0b1111_1100}},
@@ -65,8 +65,8 @@ func uint16CompactTestCases() []encTestCase[uint16] {
 	}
 }
 
-func uint32CompactTestCases() []encTestCase[uint32] {
-	return []encTestCase[uint32]{
+func uint32CompactTestCases() []compactTestCase[uint32] {
+	return []compactTestCase[uint32]{
 		{0, []byte{0b0000_0000}},
 		{1, []byte{0b0000_0100}},
 		{maxUint6, []byte{0b1111_1100}},
@@ -80,8 +80,8 @@ func uint32CompactTestCases() []encTestCase[uint32] {
 	}
 }
 
-func uint64CompactTestCases() []encTestCase[uint64] {
-	return []encTestCase[uint64]{
+func uint64CompactTestCases() []compactTestCase[uint64] {
+	return []compactTestCase[uint64]{
 		{0, []byte{0b0000_0000}},
 		{1, []byte{0b0000_0100}},
 		{maxUint6, []byte{0b1111_1100}},
@@ -133,8 +133,8 @@ func intPtr[T ~uint8 | ~uint16 | ~uint32 | ~uint64](v T) *T {
 	return &v
 }
 
-func uint8PtrTestCases() []encTestCase[*uint8] {
-	return []encTestCase[*uint8]{
+func uint8PtrTestCases() []compactTestCase[*uint8] {
+	return []compactTestCase[*uint8]{
 		{nil, []byte{0}},
 		{intPtr[uint8](1), []byte{1, 0b0000_0100}},
 		{intPtr[uint8](maxUint6), []byte{1, 0b1111_1100}},
@@ -142,16 +142,16 @@ func uint8PtrTestCases() []encTestCase[*uint8] {
 	}
 }
 
-func uint16PtrTestCases() []encTestCase[*uint16] {
-	return []encTestCase[*uint16]{
+func uint16PtrTestCases() []compactTestCase[*uint16] {
+	return []compactTestCase[*uint16]{
 		{nil, []byte{0}},
 		{intPtr[uint16](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
 		{intPtr[uint16](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
 	}
 }
 
-func uint32PtrTestCases() []encTestCase[*uint32] {
-	return []encTestCase[*uint32]{
+func uint32PtrTestCases() []compactTestCase[*uint32] {
+	return []compactTestCase[*uint32]{
 		{nil, []byte{0}},
 		{intPtr[uint32](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
 		{intPtr[uint32](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
@@ -167,8 +167,8 @@ func uint32PtrTestCases() []encTestCase[*uint32] {
 	}
 }
 
-func uint64PtrTestCases() []encTestCase[*uint64] {
-	return []encTestCase[*uint64]{
+func uint64PtrTestCases() []compactTestCase[*uint64] {
+	return []compactTestCase[*uint64]{
 		{nil, []byte{0}},
 		{intPtr[uint64](maxUint8), []byte{1, 0b1111_1101, 0b0000_0011}},
 		{intPtr[uint64](maxUint16), []byte{1, 0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000}},
@@ -203,20 +203,20 @@ func mustDecodeHex(hexStr string) []byte {
 	return b
 }
 
-func uint16SliceTestCases() []encTestCase[[]uint16] {
-	return []encTestCase[[]uint16]{
+func uint16SliceTestCases() []compactTestCase[[]uint16] {
+	return []compactTestCase[[]uint16]{
 		{[]uint16{4, 15, 23, math.MaxUint16}, mustDecodeHex("10103c5cfeff0300")},
 	}
 }
 
-func uint32SliceTestCases() []encTestCase[[]uint32] {
-	return []encTestCase[[]uint32]{
+func uint32SliceTestCases() []compactTestCase[[]uint32] {
+	return []compactTestCase[[]uint32]{
 		{[]uint32{4, 15, 23, math.MaxUint32}, mustDecodeHex("10103c5c03ffffffff")},
 	}
 }
 
-func uint64SliceTestCases() []encTestCase[[]uint64] {
-	return []encTestCase[[]uint64]{
+func uint64SliceTestCases() []compactTestCase[[]uint64] {
+	return []compactTestCase[[]uint64]{
 		{[]uint64{4, 15, 23, math.MaxUint64}, mustDecodeHex("10103c5c13ffffffffffffffff")},
 	}
 }
@@ -224,7 +224,7 @@ func uint64SliceTestCases() []encTestCase[[]uint64] {
 func testEncodeCompactIntegers[T any](
 	t *testing.T,
 	name string,
-	tcs []encTestCase[T],
+	tcs []compactTestCase[T],
 	encode func(enc *Encoder, value T) (int, error),
 ) {
 	t.Run(name, func(t *testing.T) {

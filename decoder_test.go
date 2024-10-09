@@ -113,7 +113,7 @@ func TestReadFull(t *testing.T) {
 func testDecodeCompactIntegers[T any](
 	t *testing.T,
 	name string,
-	tcs []encTestCase[T],
+	tcs []compactTestCase[T],
 	decode func(d *Decoder) (T, int, error),
 ) {
 	t.Run(name, func(t *testing.T) {
