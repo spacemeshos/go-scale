@@ -2,7 +2,6 @@ package scale
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"testing"
 
@@ -260,7 +259,7 @@ func testCompactIntegerBoundaries[T any](
 				buf := bytes.NewBuffer(tc.value)
 				dec := NewDecoder(buf)
 				_, _, err := decode(dec)
-				require.Error(t, err, fmt.Sprintf("%b", tc.value))
+				require.Errorf(t, err, "%b", tc.value)
 			})
 		}
 	})
