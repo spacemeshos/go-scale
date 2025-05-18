@@ -7,7 +7,7 @@ on:
 
 jobs:
   quicktests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
           make test-tidy
 
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: checkout
@@ -48,10 +48,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
-          - ubuntu-latest-arm-8-cores
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
           - macos-13
-          - [self-hosted, macos, arm64]
+          - macos-14
           - windows-2022
     steps:
       - name: checkout
@@ -80,7 +80,7 @@ jobs:
           annotate_only: true
 
   coverage:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: set up go
