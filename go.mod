@@ -5,7 +5,7 @@ go 1.24.1
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/gofuzz v1.2.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	golang.org/x/mod v0.24.0
 )
 
